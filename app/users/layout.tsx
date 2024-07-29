@@ -1,16 +1,24 @@
-import BreadCrumbs from "@/components/BreadCrumbs";
+import { File, ListFilter, PlusCircle } from "lucide-react";
 
-const layout = ({children}: Readonly<{
-    children: React.ReactNode;
-    }>) => {
-    return (
-        <div className="px-20 mt-10 flex flex-col gap-10">
-            <BreadCrumbs/>
-            <div>
-                {children}
-            </div>
-        </div>
-    );
-}
+import { Button } from "@/components/ui/button";
 
-export default layout
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+const layout = ({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) => {
+  return <div>{children}</div>;
+};
+
+export default layout;

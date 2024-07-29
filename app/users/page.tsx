@@ -1,44 +1,83 @@
 import Link from "next/link";
 import UsersList from "@/components/users/UsersList";
-import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { UserRound } from "lucide-react";
 import CreateUser from "@/components/users/CreateUser";
+import { File, ListFilter, PlusCircle } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const userPage = async () => {
-    return (
-        <div className="flex gap-5">
-            <div className="w-1/4">
-            <Card>
-                <CardHeader>
-                    <CardTitle>
-                        Create new user
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="card-body">
-                    <CreateUser />
-                </CardContent>
-            </Card>
-            </div>
-            <div className="w-3/4">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>
-                            User list
-                            {/* <Link href='/users/create-user' className="float-right">
-                                    <Button variant='default' className="flex gap-2">
-                                        <UserRound size={16} color="#fff"/> Create user
-                                    </Button>
-                                </Link> */}
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="card-body">
-                        <UsersList/>
-                    </CardContent>
-                </Card>
-            </div>
+  return (
+    <Tabs defaultValue="all">
+      <div className="flex items-center">
+        <TabsList>
+          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="active">Active</TabsTrigger>
+          <TabsTrigger value="draft">Draft</TabsTrigger>
+          <TabsTrigger value="archived" className="hidden sm:flex">
+            Archived
+          </TabsTrigger>
+        </TabsList>
+        <div className="ml-auto flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-7 gap-1">
+                <ListFilter className="h-3.5 w-3.5" />
+                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                  Filter
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Filter by</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuCheckboxItem checked>
+                Active
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem>Draft</DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem>Archived</DropdownMenuCheckboxItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button size="sm" variant="outline" className="h-7 gap-1">
+            <File className="h-3.5 w-3.5" />
+            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+              Export
+            </span>
+          </Button>
+          <Button size="sm" className="h-7 gap-1">
+            <PlusCircle className="h-3.5 w-3.5" />
+            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+              Add Product
+            </span>
+          </Button>
         </div>
-    )
-}
+      </div>
+      <TabsContent value="all">
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              <div>User list</div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <UsersList />
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
+  );
+};
 
-export default userPage
+export default userPage;
