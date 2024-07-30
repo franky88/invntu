@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import api from "@/utils/api";
 import {
   Card,
@@ -12,109 +12,166 @@ import {
 } from "@/components/ui/card";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
+import { Button } from "../ui/button";
 
 const UserDetails = () => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   const { userId } = useParams();
+  const router = useRouter();
+  const [userData, setUserData] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+  });
+  const [userProfile, setUserProfile] = useState({
+    employee_id: "",
+    contact: "",
+  });
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserData = async () => {
       try {
         const res = await api.get(`/users/${userId}/`);
-        const data = res.data;
-        setUser(data);
-        console.log(data);
-      } catch (error) {
-        console.error("Failed to fetch user:", error);
-      } finally {
-        setLoading(false);
+        const user = res.data;
+        const proRes = await api.get(`/profile/${user.profile.id}`);
+        const profile = proRes.data;
+        console.log("user profile", profile);
+        setUserData({
+          first_name: user.first_name || "",
+          last_name: user.last_name || "",
+          email: user.email || "",
+        });
+        setUserProfile({
+          employee_id: profile.employee_id || "",
+          contact: profile.contact || "",
+        });
+      } catch (err) {
+        console.error("Error fetching user data", err);
       }
     };
 
-    fetchUser();
-  }, [userId]);
+    fetchUserData();
+  }, [userId]); // Ensure the effect only runs when userId changes
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (name in userData) {
+      setUserData((prevData) => ({
+        ...prevData,
+        [name]: value,
+      }));
+    } else if (name in userProfile) {
+      setUserProfile((prevProfile) => ({
+        ...prevProfile,
+        [name]: value,
+      }));
+    }
+  };
 
-  if (!user) {
-    return <div>User not found</div>;
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      // Update user data
+      const response = await api.put(`/users/${userId}/`, userData);
+      if (response) {
+        // Update user profile data
+        const res2 = await api.put(
+          `/profile/${response.data.profile.id}/`,
+          userProfile
+        );
+        console.log("User and profile updated:", response.data, res2.data);
+
+        // Redirect to the user list and refresh the page
+        router.push("/users");
+      } else {
+        console.error("Failed to update user");
+      }
+    } catch (err) {
+      console.error("Error updating user", err);
+    }
+  };
 
   return (
-    <form>
-      <Card x-chunk="dashboard-07-chunk-0">
+    <form onSubmit={handleSubmit} className="flex flex-col flex-shrink-0 gap-5">
+      <Card>
         <CardHeader>
-          <CardTitle>Personal informations</CardTitle>
-          <CardDescription>Personal informations of the user.</CardDescription>
+          <CardTitle>Personal Information</CardTitle>
+          <CardDescription>Personal information of the user.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-6">
             <div className="grid gap-3">
-              <Label htmlFor="name">First name</Label>
+              <Label htmlFor="first_name">First name</Label>
               <Input
-                id="name"
+                id="first_name"
+                name="first_name"
                 type="text"
                 className="w-full"
-                defaultValue={user.first_name}
-                value={user.first_name}
+                value={userData.first_name}
+                onChange={handleChange}
               />
             </div>
             <div className="grid gap-3">
-              <Label htmlFor="name">Last name</Label>
+              <Label htmlFor="last_name">Last name</Label>
               <Input
-                id="name"
+                id="last_name"
+                name="last_name"
                 type="text"
                 className="w-full"
-                defaultValue={user.last_name}
-                value={user.last_name}
+                value={userData.last_name}
+                onChange={handleChange}
               />
             </div>
             <div className="grid gap-3">
-              <Label htmlFor="name">Email</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
-                id="name"
-                type="text"
+                id="email"
+                name="email"
+                type="email"
                 className="w-full"
-                defaultValue={user.email}
-                value={user.email}
+                value={userData.email}
+                onChange={handleChange}
               />
             </div>
           </div>
         </CardContent>
       </Card>
-      <Card x-chunk="dashboard-07-chunk-0">
+      <Card>
         <CardHeader>
-          <CardTitle>Additional information</CardTitle>
-          <CardDescription>User addtional informations</CardDescription>
+          <CardTitle>Additional Information</CardTitle>
+          <CardDescription>
+            Additional information about the user.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-6">
             <div className="grid gap-3">
-              <Label htmlFor="name">Employee ID</Label>
+              <Label htmlFor="employee_id">Employee ID</Label>
               <Input
-                id="name"
+                id="employee_id"
+                name="employee_id"
                 type="text"
                 className="w-full"
-                defaultValue={user.first_name}
-                value={user.profile ? user.profile.employee_id : ""}
+                value={userProfile.employee_id}
+                onChange={handleChange}
               />
             </div>
             <div className="grid gap-3">
-              <Label htmlFor="name">Contact number</Label>
+              <Label htmlFor="contact">Contact number</Label>
               <Input
-                id="name"
+                id="contact"
+                name="contact"
                 type="text"
                 className="w-full"
-                defaultValue={user.profile ? user.profile.contact : ""}
-                value={user.profile ? user.profile.contact : ""}
+                value={userProfile.contact}
+                onChange={handleChange}
               />
             </div>
           </div>
         </CardContent>
       </Card>
+      {/* <Button type="submit" variant="default">
+        Save user
+      </Button> */}
     </form>
   );
 };

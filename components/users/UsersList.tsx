@@ -46,7 +46,7 @@ const UsersList = async () => {
               )}
             </TableCell>
             <TableCell>
-              <strong className="text-md">{user.username}</strong> <br />
+              <strong className="text-md">{user.full_name}</strong> <br />
               <Link href={`mailto:${user.email}`}>
                 <div className="flex gap-1 align-middle text-center">
                   <span>

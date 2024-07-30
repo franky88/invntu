@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
@@ -26,7 +28,7 @@ const page = () => {
           </Button>
         </Link>
         <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-          Pro Controller
+          Update User
         </h1>
         <Badge variant="outline" className="ml-auto sm:ml-0">
           Active
@@ -35,7 +37,12 @@ const page = () => {
           <Button variant="outline" size="sm">
             Discard
           </Button>
-          <Button variant="default" size="sm">
+          <Button
+            onClick={() => console.log("Working!")}
+            type="submit"
+            variant="default"
+            size="sm"
+          >
             Save Update
           </Button>
         </div>

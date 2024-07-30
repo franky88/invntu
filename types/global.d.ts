@@ -1,9 +1,22 @@
+interface Department {
+    name: string;
+}
+
+interface Profile {
+    employee_id: string;
+    contact: string;
+    department: Department;
+}
+
 interface User {
     id: number;
-    name: string;
+    username: string;
     email: string;
-    get_full_name: string
+    full_name: string;
     is_staff: boolean;
+    first_name: string;
+    last_name: string;
+    profile: Profile;
     // Add other properties as needed
 }
 
