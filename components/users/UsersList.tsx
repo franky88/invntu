@@ -26,19 +26,19 @@ const UsersList = async () => {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Employee ID</TableHead>
+          <TableHead className="hidden sm:table-cell">Employee ID</TableHead>
           <TableHead>Name</TableHead>
-          <TableHead>Department</TableHead>
-          <TableHead>Email</TableHead>
+          <TableHead className="hidden sm:table-cell">Department</TableHead>
+          <TableHead className="hidden sm:table-cell">Email</TableHead>
           <TableHead>Status</TableHead>
-          <TableHead>Staff</TableHead>
+          <TableHead className="hidden sm:table-cell">Staff</TableHead>
           <TableHead>Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {users.map((user) => (
           <TableRow key={user.id}>
-            <TableCell>
+            <TableCell className="hidden sm:table-cell">
               {user.profile && (
                 <div>
                   <p>{user.profile.employee_id}</p>
@@ -56,16 +56,18 @@ const UsersList = async () => {
                 </div>
               </Link>
             </TableCell>
-            <TableCell>
+            <TableCell className="hidden sm:table-cell">
               {user.profile && user.profile.department && (
                 <div>
                   <p>{user.profile.department.name}</p>
                 </div>
               )}
             </TableCell>
-            <TableCell>{user.email}</TableCell>
+            <TableCell className="hidden sm:table-cell">{user.email}</TableCell>
             <TableCell>{user.status ?? "Employed"}</TableCell>
-            <TableCell>{user.is_staff ? "Yes" : "No"}</TableCell>
+            <TableCell className="hidden sm:table-cell">
+              {user.is_staff ? "Yes" : "No"}
+            </TableCell>
             <TableCell>
               <DropdownMenu>
                 <DropdownMenuTrigger>

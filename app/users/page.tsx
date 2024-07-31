@@ -1,11 +1,9 @@
-import Link from "next/link";
 import UsersList from "@/components/users/UsersList";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { UserRound } from "lucide-react";
-import CreateUser from "@/components/users/CreateUser";
 import { File, ListFilter, PlusCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 import {
   DropdownMenu,

@@ -7,172 +7,192 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Label } from "../ui/label";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
+import ReusableForm from "../ReusableForm";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
 
 const UserDetails = () => {
   const { userId } = useParams();
   const router = useRouter();
-  const [userData, setUserData] = useState({
-    first_name: "",
-    last_name: "",
-    email: "",
-  });
-  const [userProfile, setUserProfile] = useState({
-    employee_id: "",
-    contact: "",
-  });
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<any>(null);
+  const [department, setDepartment] = useState<any>(null);
+  const [error, setError] = useState(null);
+  const [alert, setAlert] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchUser = async () => {
       try {
-        const res = await api.get(`/users/${userId}/`);
-        const user = res.data;
-        const proRes = await api.get(`/profile/${user.profile.id}`);
-        const profile = proRes.data;
-        console.log("user profile", profile);
-        setUserData({
-          first_name: user.first_name || "",
-          last_name: user.last_name || "",
-          email: user.email || "",
-        });
-        setUserProfile({
-          employee_id: profile.employee_id || "",
-          contact: profile.contact || "",
-        });
-      } catch (err) {
-        console.error("Error fetching user data", err);
+        const userRes = await api.get(`/users/${userId}`);
+        const userData = userRes.data;
+        setUser(userData);
+        if (userData.profile) {
+          fetchProfile(userData.profile.id);
+        }
+      } catch (err: any) {
+        setError(err);
       }
     };
 
-    fetchUserData();
-  }, [userId]); // Ensure the effect only runs when userId changes
+    const fetchProfile = async (profileId: number) => {
+      try {
+        const userProfileRes = await api.get(`/profile/${profileId}`);
+        setProfile(userProfileRes.data);
+      } catch (err: any) {
+        setError(err);
+      }
+    };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name in userData) {
-      setUserData((prevData) => ({
-        ...prevData,
-        [name]: value,
-      }));
-    } else if (name in userProfile) {
-      setUserProfile((prevProfile) => ({
-        ...prevProfile,
-        [name]: value,
-      }));
+    fetchUser();
+  }, [userId]);
+
+  if (error) return <p>Error loading user data</p>;
+  if (!user || !profile) return <p>Loading...</p>;
+
+  const userFields = [
+    {
+      name: "first_name",
+      label: "First name",
+      type: "text",
+      placeholder: "",
+      value: user.first_name,
+    },
+    {
+      name: "last_name",
+      label: "Last name",
+      type: "text",
+      placeholder: "",
+      value: user.last_name,
+    },
+    {
+      name: "email",
+      label: "Email",
+      type: "email",
+      placeholder: "",
+      value: user.email,
+    },
+  ];
+
+  const profileFields = [
+    {
+      name: "employee_id",
+      label: "Employee ID",
+      type: "text",
+      placeholder: "",
+      value: profile.employee_id,
+    },
+    {
+      name: "contact",
+      label: "Contact",
+      type: "text",
+      placeholder: "",
+      value: profile.contact,
+    },
+    {
+      name: "department",
+      label: "Department",
+      type: "select",
+      placeholder: "",
+      option: profile.department.map((dept: any) => ({
+        value: dept.id,
+        label: dept.name,
+      })),
+      value: profile.department.id,
+    },
+  ];
+
+  const handleSubmit = async (formData: { [key: string]: string }) => {
+    try {
+      const res = await api.put(`/users/${userId}/`, {
+        username: user.username,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        email: formData.email,
+      });
+      console.log(res.data);
+      setAlert("Updated sucessfully");
+      setTimeout(() => setAlert(null), 3000);
+      router.refresh();
+    } catch (error: any) {
+      console.error(error.message);
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleProfileSubmit = async (formData: { [key: string]: string }) => {
     try {
-      // Update user data
-      const response = await api.put(`/users/${userId}/`, userData);
-      if (response) {
-        // Update user profile data
-        const res2 = await api.put(
-          `/profile/${response.data.profile.id}/`,
-          userProfile
-        );
-        console.log("User and profile updated:", response.data, res2.data);
-
-        // Redirect to the user list and refresh the page
-        router.push("/users");
-      } else {
-        console.error("Failed to update user");
-      }
-    } catch (err) {
-      console.error("Error updating user", err);
+      const res = await api.put(`/profile/${profile.id}/`, {
+        user: user.id,
+        employee_id: formData.employee_id,
+        contact: formData.contact,
+        department: formData.department,
+      });
+      setAlert("Updated sucessfully");
+      setTimeout(() => setAlert(null), 3000);
+      router.refresh();
+    } catch (error: any) {
+      console.error(error.message);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col flex-shrink-0 gap-5">
-      <Card>
-        <CardHeader>
-          <CardTitle>Personal Information</CardTitle>
-          <CardDescription>Personal information of the user.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-6">
-            <div className="grid gap-3">
-              <Label htmlFor="first_name">First name</Label>
-              <Input
-                id="first_name"
-                name="first_name"
-                type="text"
-                className="w-full"
-                value={userData.first_name}
-                onChange={handleChange}
+    <>
+      <Tabs defaultValue="personal">
+        <TabsList>
+          <TabsTrigger value="personal">Personal information</TabsTrigger>
+          <TabsTrigger value="company">Additional information</TabsTrigger>
+        </TabsList>
+        <TabsContent value="personal">
+          <Card>
+            <CardHeader>
+              <CardTitle>Personal Information</CardTitle>
+              <CardDescription>
+                Personal information of the user.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ReusableForm
+                fields={userFields}
+                onSubmit={handleSubmit}
+                buttonText="Save"
               />
-            </div>
-            <div className="grid gap-3">
-              <Label htmlFor="last_name">Last name</Label>
-              <Input
-                id="last_name"
-                name="last_name"
-                type="text"
-                className="w-full"
-                value={userData.last_name}
-                onChange={handleChange}
+            </CardContent>
+            {alert && (
+              <CardFooter>
+                <Alert className="bg-green-200">
+                  <AlertDescription>{alert}</AlertDescription>
+                </Alert>
+              </CardFooter>
+            )}
+          </Card>
+        </TabsContent>
+        <TabsContent value="company">
+          <Card>
+            <CardHeader>
+              <CardTitle>Additional Information</CardTitle>
+              <CardDescription>Employee information.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ReusableForm
+                fields={profileFields}
+                onSubmit={handleProfileSubmit}
+                buttonText="Save"
               />
-            </div>
-            <div className="grid gap-3">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                className="w-full"
-                value={userData.email}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Additional Information</CardTitle>
-          <CardDescription>
-            Additional information about the user.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-6">
-            <div className="grid gap-3">
-              <Label htmlFor="employee_id">Employee ID</Label>
-              <Input
-                id="employee_id"
-                name="employee_id"
-                type="text"
-                className="w-full"
-                value={userProfile.employee_id}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="grid gap-3">
-              <Label htmlFor="contact">Contact number</Label>
-              <Input
-                id="contact"
-                name="contact"
-                type="text"
-                className="w-full"
-                value={userProfile.contact}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      {/* <Button type="submit" variant="default">
-        Save user
-      </Button> */}
-    </form>
+            </CardContent>
+            {alert && (
+              <CardFooter>
+                <Alert className="bg-green-200">
+                  <AlertDescription>{alert}</AlertDescription>
+                </Alert>
+              </CardFooter>
+            )}
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </>
   );
 };
 
