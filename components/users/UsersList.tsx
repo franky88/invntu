@@ -28,7 +28,6 @@ const UsersList = async () => {
         <TableRow>
           <TableHead className="hidden sm:table-cell">Employee ID</TableHead>
           <TableHead>Name</TableHead>
-          <TableHead className="hidden sm:table-cell">Department</TableHead>
           <TableHead className="hidden sm:table-cell">Email</TableHead>
           <TableHead>Status</TableHead>
           <TableHead className="hidden sm:table-cell">Staff</TableHead>
@@ -55,13 +54,6 @@ const UsersList = async () => {
                   {user.email}
                 </div>
               </Link>
-            </TableCell>
-            <TableCell className="hidden sm:table-cell">
-              {user.profile && user.profile.department && (
-                <div>
-                  <p>{user.profile.department.name}</p>
-                </div>
-              )}
             </TableCell>
             <TableCell className="hidden sm:table-cell">{user.email}</TableCell>
             <TableCell>{user.status ?? "Employed"}</TableCell>

@@ -9,7 +9,7 @@ const layout = ({
   children: React.ReactNode;
 }>) => {
   return (
-    <div className="mx-auto grid max-w-[59rem] flex-1 auto-rows-max gap-4">
+    <div className="grid max-w-[59rem] flex-1 auto-rows-max gap-4">
       <div className="flex items-center gap-4">
         <Link href="/users">
           <Button variant="outline" size="icon" className="h-7 w-7">

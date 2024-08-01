@@ -20,7 +20,7 @@ const UserDetails = () => {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<any>(null);
-  const [department, setDepartment] = useState<any>(null);
+  const [departments, setDepartments] = useState<any[]>([]);
   const [error, setError] = useState(null);
   const [alert, setAlert] = useState<string | null>(null);
 
@@ -47,7 +47,18 @@ const UserDetails = () => {
       }
     };
 
+    const fetchDepartments = async () => {
+      try {
+        const res = await api.get("/department");
+        setDepartments(res.data.results);
+        console.log(res.data.results);
+      } catch (err: any) {
+        setError(err);
+      }
+    };
+
     fetchUser();
+    fetchDepartments();
   }, [userId]);
 
   if (error) return <p>Error loading user data</p>;
@@ -96,25 +107,24 @@ const UserDetails = () => {
       name: "department",
       label: "Department",
       type: "select",
-      placeholder: "",
-      option: profile.department.map((dept: any) => ({
-        value: dept.id,
+      placeholder: "Select a department",
+      options: departments.map((dept: any) => ({
+        value: dept.id.toString(),
         label: dept.name,
       })),
-      value: profile.department.id,
+      value: profile?.department?.toString() || "",
     },
   ];
 
   const handleSubmit = async (formData: { [key: string]: string }) => {
     try {
-      const res = await api.put(`/users/${userId}/`, {
+      await api.put(`/users/${userId}/`, {
         username: user.username,
         first_name: formData.first_name,
         last_name: formData.last_name,
         email: formData.email,
       });
-      console.log(res.data);
-      setAlert("Updated sucessfully");
+      setAlert("Updated successfully");
       setTimeout(() => setAlert(null), 3000);
       router.refresh();
     } catch (error: any) {
@@ -124,13 +134,13 @@ const UserDetails = () => {
 
   const handleProfileSubmit = async (formData: { [key: string]: string }) => {
     try {
-      const res = await api.put(`/profile/${profile.id}/`, {
+      await api.put(`/profile/${profile.id}/`, {
         user: user.id,
         employee_id: formData.employee_id,
         contact: formData.contact,
         department: formData.department,
       });
-      setAlert("Updated sucessfully");
+      setAlert("Updated successfully");
       setTimeout(() => setAlert(null), 3000);
       router.refresh();
     } catch (error: any) {
