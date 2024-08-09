@@ -1,12 +1,9 @@
 interface Department {
+    id: number;
     name: string;
+    profile_count: number;
 }
 
-interface Profile {
-    employee_id: string;
-    contact: string;
-    department: Department;
-}
 
 interface User {
     id: number;
@@ -16,7 +13,7 @@ interface User {
     is_staff: boolean;
     first_name: string;
     last_name: string;
-    profile: Profile;
+    employee_id: string;
     // Add other properties as needed
 }
 

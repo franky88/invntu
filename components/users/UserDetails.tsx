@@ -19,7 +19,6 @@ const UserDetails = () => {
   const { userId } = useParams();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<any>(null);
   const [departments, setDepartments] = useState<any[]>([]);
   const [error, setError] = useState(null);
   const [alert, setAlert] = useState<string | null>(null);
@@ -30,18 +29,6 @@ const UserDetails = () => {
         const userRes = await api.get(`/users/${userId}`);
         const userData = userRes.data;
         setUser(userData);
-        if (userData.profile) {
-          fetchProfile(userData.profile.id);
-        }
-      } catch (err: any) {
-        setError(err);
-      }
-    };
-
-    const fetchProfile = async (profileId: number) => {
-      try {
-        const userProfileRes = await api.get(`/profile/${profileId}`);
-        setProfile(userProfileRes.data);
       } catch (err: any) {
         setError(err);
       }
@@ -62,7 +49,7 @@ const UserDetails = () => {
   }, [userId]);
 
   if (error) return <p>Error loading user data</p>;
-  if (!user || !profile) return <p>Loading...</p>;
+  if (!user) return <p>Loading...</p>;
 
   const userFields = [
     {
@@ -86,22 +73,33 @@ const UserDetails = () => {
       placeholder: "",
       value: user.email,
     },
-  ];
-
-  const profileFields = [
     {
       name: "employee_id",
       label: "Employee ID",
       type: "text",
       placeholder: "",
-      value: profile.employee_id,
+      value: user.employee_id,
+    },
+    {
+      name: "position",
+      label: "Position",
+      type: "text",
+      placeholder: "",
+      value: user.position,
+    },
+    {
+      name: "birth_date",
+      label: "Birth Date",
+      type: "date",
+      placeholder: "",
+      value: user.birth_date,
     },
     {
       name: "contact",
       label: "Contact",
       type: "text",
       placeholder: "",
-      value: profile.contact,
+      value: user.contact,
     },
     {
       name: "department",
@@ -112,39 +110,32 @@ const UserDetails = () => {
         value: dept.id.toString(),
         label: dept.name,
       })),
-      value: profile?.department?.toString() || "",
+      value: user?.department?.toString() || "",
     },
   ];
 
   const handleSubmit = async (formData: { [key: string]: string }) => {
     try {
       await api.put(`/users/${userId}/`, {
-        username: user.username,
         first_name: formData.first_name,
         last_name: formData.last_name,
         email: formData.email,
-      });
-      setAlert("Updated successfully");
-      setTimeout(() => setAlert(null), 3000);
-      router.refresh();
-    } catch (error: any) {
-      console.error(error.message);
-    }
-  };
-
-  const handleProfileSubmit = async (formData: { [key: string]: string }) => {
-    try {
-      await api.put(`/profile/${profile.id}/`, {
-        user: user.id,
         employee_id: formData.employee_id,
+        position: formData.position,
+        birth_date: formData.birth_date, // Ensure this is in 'YYYY-MM-DD' format
         contact: formData.contact,
-        department: formData.department,
+        department: formData.department ? parseInt(formData.department) : null,
       });
       setAlert("Updated successfully");
       setTimeout(() => setAlert(null), 3000);
       router.refresh();
     } catch (error: any) {
-      console.error(error.message);
+      if (error.response) {
+        console.error("Error status:", error.response.status);
+        console.error("Error data:", error.response.data);
+      } else {
+        console.error("Error message:", error.message);
+      }
     }
   };
 
@@ -152,43 +143,30 @@ const UserDetails = () => {
     <>
       <Tabs defaultValue="personal">
         <TabsList>
-          <TabsTrigger value="personal">Personal information</TabsTrigger>
-          <TabsTrigger value="company">Additional information</TabsTrigger>
+          <TabsTrigger value="personal">User Details</TabsTrigger>
+          <TabsTrigger value="company">Update User</TabsTrigger>
         </TabsList>
         <TabsContent value="personal">
           <Card>
             <CardHeader>
-              <CardTitle>Personal Information</CardTitle>
+              <CardTitle>User Details</CardTitle>
               <CardDescription>
                 Personal information of the user.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <ReusableForm
-                fields={userFields}
-                onSubmit={handleSubmit}
-                buttonText="Save"
-              />
-            </CardContent>
-            {alert && (
-              <CardFooter>
-                <Alert className="bg-green-200">
-                  <AlertDescription>{alert}</AlertDescription>
-                </Alert>
-              </CardFooter>
-            )}
+            <CardContent>{user.full_name}</CardContent>
           </Card>
         </TabsContent>
         <TabsContent value="company">
           <Card>
             <CardHeader>
-              <CardTitle>Additional Information</CardTitle>
-              <CardDescription>Employee information.</CardDescription>
+              <CardTitle>Update user</CardTitle>
+              <CardDescription>User information.</CardDescription>
             </CardHeader>
             <CardContent>
               <ReusableForm
-                fields={profileFields}
-                onSubmit={handleProfileSubmit}
+                fields={userFields}
+                onSubmit={handleSubmit}
                 buttonText="Save"
               />
             </CardContent>

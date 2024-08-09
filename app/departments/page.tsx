@@ -1,22 +1,29 @@
-import ReusableTable from "@/components/ReusableTable";
 import api from "@/utils/api";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
+import { Ellipsis } from "lucide-react";
+
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
+  Table,
+  TableHeader,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const page = async () => {
-  const items = await api.get("/department");
-  const data = items.data.results;
-
-  const col = [
-    { key: "id", label: "ID" },
-    { key: "name", label: "Name" },
-    { key: "actions", label: "Actions" },
-  ];
+  const department = await api.get("/department");
+  const data: Department[] = department.data.results;
 
   return (
     <Card>
@@ -24,7 +31,46 @@ const page = async () => {
         <CardTitle>Departments</CardTitle>
       </CardHeader>
       <CardContent>
-        <ReusableTable columns={col} data={data} />
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>ID</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Members</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.map((item) => (
+              <TableRow key={item.id}>
+                <TableCell>{item.id}</TableCell>
+                <TableCell>{item.name}</TableCell>
+                <TableCell>{item.profile_count}</TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger>
+                      <Ellipsis color="#222" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem>
+                        <Link href="#" legacyBehavior passHref>
+                          Edit
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Link href="#" legacyBehavior passHref>
+                          Delete
+                        </Link>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </CardContent>
     </Card>
   );

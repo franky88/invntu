@@ -38,11 +38,7 @@ const UsersList = async () => {
         {users.map((user) => (
           <TableRow key={user.id}>
             <TableCell className="hidden sm:table-cell">
-              {user.profile && (
-                <div>
-                  <p>{user.profile.employee_id}</p>
-                </div>
-              )}
+              {user.employee_id}
             </TableCell>
             <TableCell>
               <strong className="text-md">{user.full_name}</strong> <br />

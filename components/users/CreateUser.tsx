@@ -6,13 +6,6 @@ import ReusableForm from "../ReusableForm";
 const CreateUser = () => {
   const fields = [
     {
-      name: "username",
-      label: "Username",
-      type: "text",
-      placeholder: "Enter username",
-      value: "",
-    },
-    {
       name: "first_name",
       label: "First name",
       type: "text",
@@ -27,6 +20,13 @@ const CreateUser = () => {
       value: "",
     },
     {
+      name: "employee_id",
+      label: "Employee ID",
+      type: "text",
+      placeholder: "Enter Employee ID",
+      value: "",
+    },
+    {
       name: "email",
       label: "Email",
       type: "email",
@@ -36,13 +36,13 @@ const CreateUser = () => {
   ];
 
   const handleSubmit = async (formData: { [key: string]: string }) => {
-    console.log("Form submitted:", formData.username);
+    console.log("Form submitted:", formData.email);
     try {
       const res = await api.post("/users/", {
-        username: formData.username,
-        first_name: formData.firstname,
-        last_name: formData.lastname,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
         email: formData.email,
+        employee_id: formData.employee_id,
       });
       console.log(res.data);
     } catch (error: any) {
