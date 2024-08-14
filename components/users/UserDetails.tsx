@@ -122,7 +122,7 @@ const UserDetails = () => {
         email: formData.email,
         employee_id: formData.employee_id,
         position: formData.position,
-        birth_date: formData.birth_date, // Ensure this is in 'YYYY-MM-DD' format
+        birth_date: formData.birth_date,
         contact: formData.contact,
         department: formData.department ? parseInt(formData.department) : null,
       });

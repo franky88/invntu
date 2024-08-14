@@ -4,7 +4,6 @@ interface Department {
     profile_count: number;
 }
 
-
 interface User {
     id: number;
     username: string;
@@ -23,4 +22,13 @@ interface ApiResponse<T> {
     status: string;
     results: T[];
     // Add other properties as needed
+}
+
+interface Item {
+    id: number;
+    name: string;
+    date_purchased: string;
+    cost: number;
+    serial: string;
+    model: string;
 }

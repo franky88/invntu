@@ -7,9 +7,9 @@ import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 
 const Sidebar = async () => {
-  const users = await api.get("/users");
+  const users = await api.get("/users/");
   console.log(users.data.count);
-  const items = await api.get("/units");
+  const items = await api.get("/units/");
   console.log(items.data.count);
   return (
     <div className="hidden border-r bg-muted/40 md:block">

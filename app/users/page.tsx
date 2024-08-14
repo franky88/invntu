@@ -1,5 +1,3 @@
-// "use client";
-
 import UsersList from "@/components/users/UsersList";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { File, ListFilter, PlusCircle } from "lucide-react";
