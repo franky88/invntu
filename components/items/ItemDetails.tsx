@@ -179,16 +179,14 @@ const ItemDetails = () => {
     <>
       <Tabs defaultValue="personal">
         <TabsList>
-          <TabsTrigger value="personal">User Details</TabsTrigger>
-          <TabsTrigger value="company">Update User</TabsTrigger>
+          <TabsTrigger value="personal">Item Details</TabsTrigger>
+          <TabsTrigger value="company">Update Item</TabsTrigger>
         </TabsList>
         <TabsContent value="personal">
           <Card>
             <CardHeader>
-              <CardTitle>User Details</CardTitle>
-              <CardDescription>
-                Personal information of the user.
-              </CardDescription>
+              <CardTitle>Item Details</CardTitle>
+              <CardDescription>Item informations</CardDescription>
             </CardHeader>
             <CardContent>{item.name}</CardContent>
           </Card>
@@ -196,8 +194,8 @@ const ItemDetails = () => {
         <TabsContent value="company">
           <Card>
             <CardHeader>
-              <CardTitle>Update user</CardTitle>
-              <CardDescription>User information.</CardDescription>
+              <CardTitle>Update item</CardTitle>
+              <CardDescription>Update item informations.</CardDescription>
             </CardHeader>
             <CardContent>
               <ReusableForm

@@ -2,14 +2,69 @@
 
 import api from "@/utils/api";
 import ReusableForm from "../ReusableForm";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 const CreateItem = () => {
+  const [categories, setCategories] = useState<any[]>([]);
+  const [unitKit, setUnitKit] = useState<any[]>([]);
+  const [itemStatus, setItemStatus] = useState<any[]>([]);
+  const [error, setError] = useState(null);
+  const [alert, setAlert] = useState<string | null>(null);
+
+  const { user } = useAuth();
+
+  console.log("current user", user);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await api.get("/categories");
+        setCategories(res.data.results);
+        console.log(res.data.results);
+      } catch (err: any) {
+        setError(err);
+      }
+    };
+
+    const fetchUnitKit = async () => {
+      try {
+        const res = await api.get("/kits");
+        setUnitKit(res.data.results);
+        console.log(res.data.results);
+      } catch (err: any) {
+        setError(err);
+      }
+    };
+
+    const fetchItemStatus = async () => {
+      try {
+        const res = await api.get("/unit-status");
+        setItemStatus(res.data.results);
+        console.log(res.data.results);
+      } catch (err: any) {
+        setError(err);
+      }
+    };
+
+    fetchCategories();
+    fetchUnitKit();
+    fetchItemStatus();
+  }, []);
+
   const fields = [
     {
       name: "name",
       label: "Name",
       type: "text",
       placeholder: "Enter name",
+      value: "",
+    },
+    {
+      name: "model",
+      label: "Model",
+      type: "text",
+      placeholder: "",
       value: "",
     },
     {
@@ -33,10 +88,42 @@ const CreateItem = () => {
       placeholder: "Enter serial number",
       value: "",
     },
+    {
+      name: "category",
+      label: "Category",
+      type: "select",
+      placeholder: "Select a category",
+      options: categories.map((cat: any) => ({
+        value: cat.id.toString(),
+        label: cat.name,
+      })),
+      value: "",
+    },
+    {
+      name: "unit_kit",
+      label: "Unit kit",
+      type: "select",
+      placeholder: "Select a kit",
+      options: unitKit.map((uk: any) => ({
+        value: uk.id.toString(),
+        label: uk.name,
+      })),
+      value: "",
+    },
+    {
+      name: "item_status",
+      label: "Item Status",
+      type: "select",
+      placeholder: "Select a item status",
+      options: itemStatus.map((status: any) => ({
+        value: status.id.toString(),
+        label: status.name,
+      })),
+      value: "",
+    },
   ];
 
   const handleSubmit = async (formData: { [key: string]: string }) => {
-    console.log("Form submitted:", formData.email);
     try {
       const res = await api.post("/units/", {
         name: formData.name,

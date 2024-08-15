@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
 import { AuthProvider } from "@/context/AuthContext";
+import ClientWrapper from "@/components/ClientWrapper";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,22 +19,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <AuthProvider>
-      <html lang="en">
-        <body className={inter.className}>
-          <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
-            <div className="hidden border-r bg-muted/40 md:block">
-              <Sidebar />
-            </div>
-            <div className="flex flex-col">
-              <Header />
-              <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-                {children}
-              </main>
-            </div>
-          </div>
-        </body>
-      </html>
-    </AuthProvider>
+    <html lang="en">
+      <body className={inter.className}>
+        <AuthProvider>
+          <ClientWrapper>{children}</ClientWrapper>
+        </AuthProvider>
+      </body>
+    </html>
   );
 }

@@ -1,27 +1,26 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { useEffect } from "react";
 
-const ProtectedRoute = ({
-  children,
-}: Readonly<{ children: React.ReactNode }>) => {
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
-    if (!user && !loading) {
+    if (!loading && !user) {
+      setRedirecting(true);
       router.push("/login");
     }
   }, [user, loading, router]);
 
-  if (loading || !user) {
-    return <p>Loading...</p>;
+  if (loading || redirecting) {
+    return <div>Loading...</div>; // Show loading state while redirecting
   }
 
-  return children;
+  return <>{children}</>;
 };
 
 export default ProtectedRoute;

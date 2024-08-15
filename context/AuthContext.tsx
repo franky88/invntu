@@ -1,3 +1,4 @@
+// context/AuthContext.tsx
 "use client";
 
 import React, {
@@ -21,7 +22,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (username: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -42,6 +43,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       api
         .get("/users", { headers: { Authorization: `Bearer ${accessToken}` } })
         .then((response) => {
+          console.log(response.data);
           setUser(response.data);
         })
         .catch(() => {
@@ -54,11 +56,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, []);
 
-  const login = async (username: string, password: string) => {
+  const login = async (email: string, password: string) => {
     try {
-      const response = await api.post("/auth/token", { username, password });
+      const response = await api.post("/auth/token", { email, password });
       localStorage.setItem("accessToken", response.data.access);
-      setUser(response.data.user);
+      setUser(response.data.email);
+      console.log(response.data.email);
       router.push("/");
     } catch (error) {
       console.error("Login failed:", error);
