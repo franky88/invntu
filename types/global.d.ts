@@ -6,6 +6,9 @@ interface Department {
 
 interface User {
     id: number;
+    birth_date: any;
+    contact: any;
+    department: any;
     username: string;
     email: string;
     full_name: string;
@@ -25,6 +28,7 @@ interface ApiResponse<T> {
 }
 
 interface Item {
+    category: any;
     id: number;
     name: string;
     date_purchased: string;

@@ -41,11 +41,11 @@ const page = async () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>{item.id}</TableCell>
-                <TableCell>{item.name}</TableCell>
-                <TableCell>{item.profile_count}</TableCell>
+            {data.map((dep) => (
+              <TableRow key={dep.id}>
+                <TableCell>{dep.id}</TableCell>
+                <TableCell>{dep.name}</TableCell>
+                <TableCell>{dep.profile_count}</TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger>

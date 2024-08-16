@@ -17,7 +17,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }, [user, loading, router]);
 
   if (loading || redirecting) {
-    return <div>Loading...</div>; // Show loading state while redirecting
+    return <div>Loading...</div>;
   }
 
   return <>{children}</>;

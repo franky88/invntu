@@ -23,6 +23,7 @@ import api from "@/utils/api";
 const ItemList = async () => {
   const res = await api.get<ApiResponse<Item>>("units/");
   const items = res.data.results;
+
   return (
     <Table>
       <TableHeader>

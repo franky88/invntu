@@ -17,12 +17,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState, useEffect } from "react";
 
 const UsersList = async () => {
   const res = await api.get<ApiResponse<User>>("users/");
   const users = res.data.results;
-  console.log(users);
+
   return (
     <Table>
       <TableHeader>
