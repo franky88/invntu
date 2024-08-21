@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const UsersList = async () => {
-  const res = await api.get<ApiResponse<User>>("users/");
+  const res = await api.get<ApiResponse<User>>("/users");
   const users = res.data.results;
 
   return (

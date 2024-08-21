@@ -6,11 +6,10 @@ import React, {
   useState,
   useEffect,
   ReactNode,
-  FormEvent,
 } from "react";
-import { jwtDecode } from "jwt-decode";
 import api from "@/utils/api";
 import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 
 // Define the shape of the user data based on JWT payload
 interface User {
@@ -20,16 +19,10 @@ interface User {
   // Add more fields based on your JWT token payload structure
 }
 
-interface AuthTokens {
-  access: string;
-  refresh: string;
-}
-
 // Define the shape of the context state
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  authTokens: AuthTokens | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
@@ -42,74 +35,77 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [authTokens, setAuthTokens] = useState<AuthTokens | null>(() =>
-    typeof window !== "undefined" && localStorage.getItem("authTokens")
-      ? JSON.parse(localStorage.getItem("authTokens")!)
-      : null
-  );
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const accessToken = localStorage.getItem("authTokens");
-    if (accessToken) {
-      const decodedUser = jwtDecode<User>(accessToken);
-      console.log("authtokens from localstorage: ", decodedUser);
-      console.log("localstorage token: ", authTokens);
-      setUser(decodedUser);
-    }
-    setLoading(false);
+    const getUser = async () => {
+      const token = Cookies.get("token");
+      try {
+        console.log("Token from cookies", JSON.stringify(token));
+        const response = await api.get("/current-user", {
+          headers: {
+            Authorization: `Bearer ${JSON.stringify(token)}`,
+          },
+          withCredentials: true,
+        });
+        console.log("Fetch user response:", response);
+        setUser(response.data);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getUser();
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await api.post("/auth/token", { email, password });
-      console.log("login token: ", response.data);
-      setAuthTokens(response.data);
-      const decodedUser = jwtDecode<User>(response.data.access);
-      setUser(decodedUser);
-      localStorage.setItem("authTokens", JSON.stringify(response.data.access));
-      router.push("/");
+      const response = await api.post(
+        "/auth/token",
+        { email, password },
+        { withCredentials: true }
+      );
+
+      console.log("Login response:", response);
+
+      if (response.status === 200) {
+        Cookies.set("token", response.data.access);
+        try {
+          const userResponse = await api.get("/current-user", {
+            headers: {
+              Authorization: `Bearer ${response.data.access}`,
+            },
+            withCredentials: true,
+          });
+          console.log("User data after login:", userResponse.data);
+          setUser(userResponse.data);
+          router.push("/");
+        } catch (error) {
+          console.error("Login failed", error);
+        }
+      }
     } catch (error) {
       console.error("Login failed:", error);
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem("authTokens");
-    setAuthTokens(null);
-    setUser(null);
-    router.push("/login");
+  const logout = async () => {
+    try {
+      await api.post("/auth/logout", {}, { withCredentials: true });
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      setUser(null);
+      router.push("/login");
+    }
   };
 
-  // Token refresh logic (optional)
-  useEffect(() => {
-    const updateToken = async () => {
-      if (authTokens) {
-        try {
-          const response = await api.post("/auth/token/refresh/", {
-            refresh: authTokens.refresh,
-          });
-          console.log("update token response: ", response.data);
-          setAuthTokens(response.data);
-          localStorage.setItem(
-            "authTokens",
-            JSON.stringify(response.data.access)
-          );
-          const decodedUser = jwtDecode<User>(response.data.access);
-          setUser(decodedUser);
-        } catch (error) {
-          logout();
-        }
-      }
-    };
-
-    const interval = setInterval(updateToken, 1000 * 60 * 60 * 24);
-    return () => clearInterval(interval);
-  }, [authTokens]);
-
   return (
-    <AuthContext.Provider value={{ user, loading, authTokens, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
