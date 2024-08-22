@@ -13,7 +13,10 @@ import {
 } from "@/components/ui/card";
 import ReusableForm from "../ReusableForm";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 
 const ItemDetails = () => {
   const { itemId } = useParams();
@@ -74,6 +77,13 @@ const ItemDetails = () => {
 
   const itemFields = item
     ? [
+        {
+          name: "barcode",
+          label: "Barcode",
+          type: "text",
+          placeholder: "",
+          value: item.barcode,
+        },
         {
           name: "name",
           label: "Name",
@@ -151,6 +161,7 @@ const ItemDetails = () => {
   const handleSubmit = async (formData: { [key: string]: string }) => {
     try {
       await api.put(`/units/${itemId}/`, {
+        barcode: formData.barcode,
         name: formData.name,
         model: formData.model,
         cost: formData.cost,
@@ -163,6 +174,10 @@ const ItemDetails = () => {
           : null,
       });
       setAlert("Updated successfully");
+
+      const res = await api.get(`/units/${itemId}`);
+      setItem(res.data);
+
       setTimeout(() => setAlert(null), 3000);
       router.refresh();
     } catch (error: any) {
@@ -177,21 +192,19 @@ const ItemDetails = () => {
 
   return (
     <>
-      <Tabs defaultValue="personal">
-        <TabsList>
-          <TabsTrigger value="personal">Item Details</TabsTrigger>
-          <TabsTrigger value="company">Update Item</TabsTrigger>
-        </TabsList>
-        <TabsContent value="personal">
-          <Card>
-            <CardHeader>
-              <CardTitle>Item Details</CardTitle>
-              <CardDescription>Item informations</CardDescription>
-            </CardHeader>
-            <CardContent>{item.name}</CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="company">
+      <div className="flex items-center gap-4">
+        <Link href="/items">
+          <Button variant="outline" size="icon" className="h-7 w-7">
+            <ChevronLeft className="h-4 w-4" />
+            <span className="sr-only">Back</span>
+          </Button>
+        </Link>
+        <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
+          Update Item
+        </h1>
+      </div>
+      <div className="grid gap-4 md:grid-cols-[1fr_250px] lg:grid-cols-3 lg:gap-8">
+        <div className="grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8">
           <Card>
             <CardHeader>
               <CardTitle>Update item</CardTitle>
@@ -212,8 +225,8 @@ const ItemDetails = () => {
               </CardFooter>
             )}
           </Card>
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
     </>
   );
 };

@@ -14,6 +14,10 @@ import {
 import ReusableForm from "../ReusableForm";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, Divide } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 
 const UserDetails = () => {
   const { userId } = useParams();
@@ -36,7 +40,7 @@ const UserDetails = () => {
 
     const fetchDepartments = async () => {
       try {
-        const res = await api.get("/department");
+        const res = await api.get("/departments");
         setDepartments(res.data.results);
         console.log(res.data.results);
       } catch (err: any) {
@@ -102,6 +106,13 @@ const UserDetails = () => {
       value: user.contact,
     },
     {
+      name: "is_active",
+      label: "Is Active",
+      type: "checkbox",
+      placeholder: "",
+      value: user.is_active,
+    },
+    {
       name: "department",
       label: "Department",
       type: "select",
@@ -124,9 +135,14 @@ const UserDetails = () => {
         position: formData.position,
         birth_date: formData.birth_date,
         contact: formData.contact,
+        is_active: formData.is_active,
         department: formData.department ? parseInt(formData.department) : null,
       });
       setAlert("Updated successfully");
+
+      const res = await api.get(`/users/${userId}`);
+      setUser(res.data);
+
       setTimeout(() => setAlert(null), 3000);
       router.refresh();
     } catch (error: any) {
@@ -140,28 +156,31 @@ const UserDetails = () => {
   };
 
   return (
-    <>
-      <Tabs defaultValue="personal">
-        <TabsList>
-          <TabsTrigger value="personal">User Details</TabsTrigger>
-          <TabsTrigger value="company">Update User</TabsTrigger>
-        </TabsList>
-        <TabsContent value="personal">
-          <Card>
-            <CardHeader>
-              <CardTitle>User Details</CardTitle>
-              <CardDescription>
-                Personal information of the user.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>{user.full_name}</CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="company">
-          <Card>
+    <div className="mx-auto grid max-w-[59rem] flex-1 auto-rows-max gap-4">
+      <div className="flex items-center gap-4">
+        <Link href="/users">
+          <Button variant="outline" size="icon" className="h-7 w-7">
+            <ChevronLeft className="h-4 w-4" />
+            <span className="sr-only">Back</span>
+          </Button>
+        </Link>
+        <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
+          Update User
+        </h1>
+        <Badge variant="outline" className="ml-auto sm:ml-0">
+          {user.is_active ? (
+            <div className="text-green-600">Active</div>
+          ) : (
+            <div className="text-red-600">Inactive</div>
+          )}
+        </Badge>
+      </div>
+      <div className="grid gap-4 md:grid-cols-[1fr_250px] lg:grid-cols-3 lg:gap-8">
+        <div className="grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8">
+          <Card x-chunk="dashboard-07-chunk-0">
             <CardHeader>
               <CardTitle>Update user</CardTitle>
-              <CardDescription>User information.</CardDescription>
+              <CardDescription>User information</CardDescription>
             </CardHeader>
             <CardContent>
               <ReusableForm
@@ -178,9 +197,9 @@ const UserDetails = () => {
               </CardFooter>
             )}
           </Card>
-        </TabsContent>
-      </Tabs>
-    </>
+        </div>
+      </div>
+    </div>
   );
 };
 

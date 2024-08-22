@@ -54,6 +54,13 @@ const CreateItem = () => {
 
   const fields = [
     {
+      name: "barcode",
+      label: "Barcode",
+      type: "text",
+      placeholder: "Enter barcode",
+      value: "",
+    },
+    {
       name: "name",
       label: "Name",
       type: "text",
@@ -126,6 +133,7 @@ const CreateItem = () => {
   const handleSubmit = async (formData: { [key: string]: string }) => {
     try {
       const res = await api.post("/units/", {
+        barcode: formData.barcode,
         name: formData.name,
         date_purchased: formData.date_purchased,
         cost: formData.cost,

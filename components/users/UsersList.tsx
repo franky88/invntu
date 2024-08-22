@@ -1,5 +1,8 @@
+"use client";
+
 import api from "@/utils/api";
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -18,9 +21,37 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const UsersList = async () => {
-  const res = await api.get<ApiResponse<User>>("/users");
-  const users = res.data.results;
+import { Badge } from "../ui/badge";
+
+// Define User type if not already defined
+
+const UsersList = () => {
+  const [users, setUsers] = useState<User[] | null>(null);
+  const [loading, setLoading] = useState(true); // Add a loading state
+
+  useEffect(() => {
+    const getUsers = async () => {
+      try {
+        const res = await api.get<{ results: User[] }>("/users");
+        console.log(res.data.results);
+        setUsers(res.data.results);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      } finally {
+        setLoading(false); // Set loading to false after data is fetched
+      }
+    };
+
+    getUsers();
+  }, []);
+
+  if (loading) {
+    return <p>Loading...</p>; // Display a loading message while fetching data
+  }
+
+  if (!users || users.length === 0) {
+    return <p>No users found.</p>; // Handle the case where no users are found
+  }
 
   return (
     <Table>
@@ -44,15 +75,20 @@ const UsersList = async () => {
               <strong className="text-md">{user.full_name}</strong> <br />
               <Link href={`mailto:${user.email}`}>
                 <div className="flex gap-1 align-middle text-center">
-                  <span>
-                    <Mail size={18} />
-                  </span>{" "}
-                  {user.email}
+                  <Mail size={18} /> {user.email}
                 </div>
               </Link>
             </TableCell>
             <TableCell className="hidden sm:table-cell">{user.email}</TableCell>
-            <TableCell>{user.status ?? "Employed"}</TableCell>
+            <TableCell>
+              <Badge variant="outline">
+                {user.is_active ? (
+                  <div className="text-green-600">Working</div>
+                ) : (
+                  <div className="text-red-600">Resigned</div>
+                )}
+              </Badge>
+            </TableCell>
             <TableCell className="hidden sm:table-cell">
               {user.is_staff ? "Yes" : "No"}
             </TableCell>
@@ -65,12 +101,12 @@ const UsersList = async () => {
                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>
-                    <Link href={`/users/${user.id}`} legacyBehavior passHref>
+                    <Link href={`/users/${user.id}`} passHref>
                       Edit
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <Link href="#" legacyBehavior passHref>
+                    <Link href="#" passHref>
                       Delete
                     </Link>
                   </DropdownMenuItem>

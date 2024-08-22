@@ -12,21 +12,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // Define the type for a form field
 interface FormField {
   name: string;
   label: string;
-  type: string; // Can be "text", "email", "select", etc.
+  type: string; // Can be "text", "email", "select", "checkbox", etc.
   placeholder?: string;
-  value: string;
+  value: string | boolean; // Value can now be string or boolean for checkbox
   options?: { value: string; label: string }[]; // Options for select field
 }
 
 // Define the type for form props
 interface ReusableFormProps {
   fields: FormField[];
-  onSubmit: (formData: { [key: string]: string }) => void;
+  onSubmit: (formData: { [key: string]: string | boolean }) => void;
   buttonText: string;
 }
 
@@ -36,7 +37,7 @@ const ReusableForm: React.FC<ReusableFormProps> = ({
   buttonText,
 }) => {
   // State to manage form data
-  const [formData, setFormData] = useState<{ [key: string]: string }>(
+  const [formData, setFormData] = useState<{ [key: string]: string | boolean }>(
     fields.reduce(
       (acc, field) => ({ ...acc, [field.name]: field.value || "" }),
       {}
@@ -47,8 +48,11 @@ const ReusableForm: React.FC<ReusableFormProps> = ({
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const { name, value, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [name]: type === "checkbox" ? checked : value,
+    });
   };
 
   // Handle form submission
@@ -64,7 +68,7 @@ const ReusableForm: React.FC<ReusableFormProps> = ({
           <Label htmlFor={field.name}>{field.label}</Label>
           {field.type === "select" && field.options ? (
             <Select
-              value={formData[field.name]}
+              value={formData[field.name] as string}
               onValueChange={(value) =>
                 setFormData({ ...formData, [field.name]: value })
               }
@@ -82,13 +86,27 @@ const ReusableForm: React.FC<ReusableFormProps> = ({
                 </SelectGroup>
               </SelectContent>
             </Select>
+          ) : field.type === "checkbox" ? (
+            <div className="flex items-center">
+              <Checkbox
+                id={field.name}
+                name={field.name}
+                checked={formData[field.name] as boolean}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, [field.name]: checked })
+                }
+              />
+              <Label htmlFor={field.name} className="ml-2">
+                {field.label}
+              </Label>
+            </div>
           ) : (
             <Input
               id={field.name}
               type={field.type}
               name={field.name}
               placeholder={field.placeholder}
-              value={formData[field.name]}
+              value={formData[field.name] as string}
               onChange={handleInputChange}
             />
           )}

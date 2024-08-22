@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Table,
   TableHeader,
@@ -19,15 +21,30 @@ import {
 import { Ellipsis } from "lucide-react";
 
 import api from "@/utils/api";
+import { useState, useEffect } from "react";
 
-const ItemList = async () => {
-  const res = await api.get<ApiResponse<Item>>("units/");
-  const items = res.data.results;
+const ItemList = () => {
+  const [items, setItems] = useState<Item[]>([]);
+
+  useEffect(() => {
+    const getItems = async () => {
+      try {
+        const res = await api.get("units");
+        console.log(res.data.results);
+        setItems(res.data.results);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    getItems();
+  }, []);
 
   return (
     <Table>
       <TableHeader>
         <TableRow>
+          <TableHead>Barcode</TableHead>
           <TableHead>Name</TableHead>
           <TableHead>Model</TableHead>
           <TableHead className="hidden sm:table-cell">Serials</TableHead>
@@ -39,6 +56,7 @@ const ItemList = async () => {
       <TableBody>
         {items.map((item) => (
           <TableRow key={item.id}>
+            <TableCell>{item.barcode}</TableCell>
             <TableCell>{item.name}</TableCell>
             <TableCell>{item.model}</TableCell>
             <TableCell className="hidden sm:table-cell">

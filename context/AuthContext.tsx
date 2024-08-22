@@ -9,7 +9,6 @@ import React, {
 } from "react";
 import api from "@/utils/api";
 import { useRouter } from "next/navigation";
-import Cookies from "js-cookie";
 
 // Define the shape of the user data based on JWT payload
 interface User {
@@ -40,17 +39,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   useEffect(() => {
     const getUser = async () => {
-      const token = Cookies.get("token");
       try {
-        console.log("Token from cookies", JSON.stringify(token));
         const response = await api.get("/current-user", {
-          headers: {
-            Authorization: `Bearer ${JSON.stringify(token)}`,
-          },
           withCredentials: true,
         });
-        console.log("Fetch user response:", response);
-        setUser(response.data);
+        if (response.status === 200) {
+          setUser(response.data);
+        } else {
+          setUser(null);
+          router.push("/");
+        }
       } catch (error) {
         console.error("Error fetching user:", error);
         setUser(null);
@@ -73,12 +71,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       console.log("Login response:", response);
 
       if (response.status === 200) {
-        Cookies.set("token", response.data.access);
         try {
           const userResponse = await api.get("/current-user", {
-            headers: {
-              Authorization: `Bearer ${response.data.access}`,
-            },
             withCredentials: true,
           });
           console.log("User data after login:", userResponse.data);
