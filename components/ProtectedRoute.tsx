@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import LoadingData from "./LoadingData";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -17,7 +18,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }, [user, loading, router]);
 
   if (loading || redirecting) {
-    return <div>Loading...</div>;
+    return <LoadingData />;
   }
 
   return <>{children}</>;

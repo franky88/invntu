@@ -45,9 +45,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         });
         if (response.status === 200) {
           setUser(response.data);
-        } else {
-          setUser(null);
-          router.push("/");
         }
       } catch (error) {
         console.error("Error fetching user:", error);

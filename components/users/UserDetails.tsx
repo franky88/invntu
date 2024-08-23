@@ -53,7 +53,7 @@ const UserDetails = () => {
   }, [userId]);
 
   if (error) return <p>Error loading user data</p>;
-  if (!user) return <p>Loading...</p>;
+  if (!user) return <p>Loading asas...</p>;
 
   const userFields = [
     {
@@ -106,11 +106,11 @@ const UserDetails = () => {
       value: user.contact,
     },
     {
-      name: "is_active",
-      label: "Is Active",
+      name: "is_working",
+      label: "Is Working",
       type: "checkbox",
       placeholder: "",
-      value: user.is_active,
+      value: user.is_working,
     },
     {
       name: "department",
@@ -135,7 +135,7 @@ const UserDetails = () => {
         position: formData.position,
         birth_date: formData.birth_date,
         contact: formData.contact,
-        is_active: formData.is_active,
+        is_working: formData.is_working,
         department: formData.department ? parseInt(formData.department) : null,
       });
       setAlert("Updated successfully");
@@ -156,7 +156,7 @@ const UserDetails = () => {
   };
 
   return (
-    <div className="mx-auto grid max-w-[59rem] flex-1 auto-rows-max gap-4">
+    <div className="grid max-w-[59rem] flex-1 auto-rows-max gap-4">
       <div className="flex items-center gap-4">
         <Link href="/users">
           <Button variant="outline" size="icon" className="h-7 w-7">
@@ -168,10 +168,10 @@ const UserDetails = () => {
           Update User
         </h1>
         <Badge variant="outline" className="ml-auto sm:ml-0">
-          {user.is_active ? (
-            <div className="text-green-600">Active</div>
+          {user.is_working ? (
+            <div className="text-green-600">Working</div>
           ) : (
-            <div className="text-red-600">Inactive</div>
+            <div className="text-red-600">Resigned</div>
           )}
         </Badge>
       </div>

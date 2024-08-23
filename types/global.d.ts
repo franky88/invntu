@@ -17,6 +17,8 @@ interface User {
     first_name: string;
     last_name: string;
     employee_id: string;
+    is_archived: boolean;
+    is_working: boolean;
     // Add other properties as needed
 }
 
