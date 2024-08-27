@@ -487,27 +487,13 @@ const UsersList = () => {
                           {user.is_staff ? "Yes" : "No"}
                         </TableCell>
                         <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger>
-                              <Button variant="outline" size="sm">
-                                <Ellipsis color="#222" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem>
-                                <Link href={`/users/${user.id}`} passHref>
-                                  Edit
-                                </Link>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <a onClick={() => handleUserClick(user.id)}>
-                                  Restore
-                                </a>
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleUserClick(user.id)}
+                          >
+                            Restore
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))

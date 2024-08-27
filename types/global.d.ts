@@ -40,3 +40,10 @@ interface Item {
     model: string;
     barcode: string;
 }
+
+interface Kit {
+    id: number;
+    name: string;
+    kit_code: string;
+    is_available: boolean;
+}
