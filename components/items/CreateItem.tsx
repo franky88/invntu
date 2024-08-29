@@ -135,6 +135,7 @@ const CreateItem = () => {
       const res = await api.post("/units/", {
         barcode: formData.barcode,
         name: formData.name,
+        model: formData.model,
         date_purchased: formData.date_purchased,
         cost: formData.cost,
         serial: formData.serial,

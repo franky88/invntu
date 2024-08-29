@@ -7,7 +7,7 @@ import Sidebar from "./Sidebar";
 const ClientWrapper = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
 
-  const noLayoutRoutes = ["/login", "/register"];
+  const noLayoutRoutes = ["/login", "/token-expired", "/register"];
 
   const shouldExcludeLayout = noLayoutRoutes.includes(pathname);
 

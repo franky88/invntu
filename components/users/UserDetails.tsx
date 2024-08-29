@@ -11,13 +11,31 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import ReusableForm from "../ReusableForm";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Divide } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "../ui/checkbox";
 import Link from "next/link";
+import {
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { useForm, FormProvider } from "react-hook-form";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const UserDetails = () => {
   const { userId } = useParams();
@@ -27,12 +45,19 @@ const UserDetails = () => {
   const [error, setError] = useState(null);
   const [alert, setAlert] = useState<string | null>(null);
 
+  const methods = useForm<User>({});
+
+  const { control, handleSubmit, setValue } = methods;
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const userRes = await api.get(`/users/${userId}`);
         const userData = userRes.data;
         setUser(userData);
+        Object.keys(userData).forEach((key) =>
+          setValue(key as keyof User, userData[key])
+        );
       } catch (err: any) {
         setError(err);
       }
@@ -50,93 +75,18 @@ const UserDetails = () => {
 
     fetchUser();
     fetchDepartments();
-  }, [userId]);
+  }, [userId, setValue]);
 
   if (error) return <p>Error loading user data</p>;
-  if (!user) return <p>Loading asas...</p>;
+  if (!user) return <p>Loading...</p>;
 
-  const userFields = [
-    {
-      name: "first_name",
-      label: "First name",
-      type: "text",
-      placeholder: "",
-      value: user.first_name,
-    },
-    {
-      name: "last_name",
-      label: "Last name",
-      type: "text",
-      placeholder: "",
-      value: user.last_name,
-    },
-    {
-      name: "email",
-      label: "Email",
-      type: "email",
-      placeholder: "",
-      value: user.email,
-    },
-    {
-      name: "employee_id",
-      label: "Employee ID",
-      type: "text",
-      placeholder: "",
-      value: user.employee_id,
-    },
-    {
-      name: "position",
-      label: "Position",
-      type: "text",
-      placeholder: "",
-      value: user.position,
-    },
-    {
-      name: "birth_date",
-      label: "Birth Date",
-      type: "date",
-      placeholder: "",
-      value: user.birth_date,
-    },
-    {
-      name: "contact",
-      label: "Contact",
-      type: "text",
-      placeholder: "",
-      value: user.contact,
-    },
-    {
-      name: "is_working",
-      label: "Is Working",
-      type: "checkbox",
-      placeholder: "",
-      value: user.is_working,
-    },
-    {
-      name: "department",
-      label: "Department",
-      type: "select",
-      placeholder: "Select a department",
-      options: departments.map((dept: any) => ({
-        value: dept.id.toString(),
-        label: dept.name,
-      })),
-      value: user?.department?.toString() || "",
-    },
-  ];
-
-  const handleSubmit = async (formData: { [key: string]: string }) => {
+  const onSubmit = async (formData: User) => {
     try {
       await api.put(`/users/${userId}/`, {
-        first_name: formData.first_name,
-        last_name: formData.last_name,
-        email: formData.email,
-        employee_id: formData.employee_id,
-        position: formData.position,
-        birth_date: formData.birth_date,
-        contact: formData.contact,
-        is_working: formData.is_working,
-        department: formData.department ? parseInt(formData.department) : null,
+        ...formData,
+        department: formData.department
+          ? parseInt(formData.department.toString())
+          : null,
       });
       setAlert("Updated successfully");
 
@@ -155,51 +105,229 @@ const UserDetails = () => {
     }
   };
 
+  const discardUpdate = () => {
+    router.push("/users");
+  };
+
   return (
-    <div className="grid max-w-[59rem] flex-1 auto-rows-max gap-4">
-      <div className="flex items-center gap-4">
-        <Link href="/users">
-          <Button variant="outline" size="icon" className="h-7 w-7">
-            <ChevronLeft className="h-4 w-4" />
-            <span className="sr-only">Back</span>
-          </Button>
-        </Link>
-        <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-          Update User
-        </h1>
-        <Badge variant="outline" className="ml-auto sm:ml-0">
-          {user.is_working ? (
-            <div className="text-green-600">Working</div>
-          ) : (
-            <div className="text-red-600">Resigned</div>
-          )}
-        </Badge>
-      </div>
-      <div className="grid gap-4 md:grid-cols-[1fr_250px] lg:grid-cols-3 lg:gap-8">
-        <div className="grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8">
-          <Card x-chunk="dashboard-07-chunk-0">
-            <CardHeader>
-              <CardTitle>Update user</CardTitle>
-              <CardDescription>User information</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ReusableForm
-                fields={userFields}
-                onSubmit={handleSubmit}
-                buttonText="Save"
-              />
-            </CardContent>
-            {alert && (
-              <CardFooter>
+    <FormProvider {...methods}>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <div className="mx-auto grid max-w-[59rem] flex-1 auto-rows-max gap-4">
+          <div className="flex items-center gap-4">
+            <Link href="/users">
+              <Button variant="outline" size="icon" className="h-7 w-7">
+                <ChevronLeft className="h-4 w-4" />
+                <span className="sr-only">Back</span>
+              </Button>
+            </Link>
+            <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
+              Update User
+            </h1>
+            <Badge variant="outline" className="ml-auto sm:ml-0">
+              {user.is_working ? (
+                <div className="text-green-600">Working</div>
+              ) : (
+                <div className="text-red-600">Resigned</div>
+              )}
+            </Badge>
+            <div className="items-center gap-2 md:ml-auto md:flex">
+              <Button variant="outline" size="sm" onClick={discardUpdate}>
+                Discard
+              </Button>
+              <Button size="sm" type="submit">
+                Save
+              </Button>
+            </div>
+          </div>
+          <div className="grid gap-4 md:grid-cols-[1fr_250px] lg:grid-cols-3 lg:gap-8">
+            <div className="grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8">
+              <Card x-chunk="dashboard-07-chunk-0">
+                <CardHeader>
+                  <CardTitle>Update user</CardTitle>
+                  <CardDescription>User information</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {/* Form Fields */}
+                  <FormField
+                    name="first_name"
+                    control={control}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>First name</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Enter first name" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    name="last_name"
+                    control={control}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Last name</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Enter last name" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    name="birth_date"
+                    control={control}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Birt date</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="date"
+                            {...field}
+                            placeholder="Enter birth date"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    name="contact"
+                    control={control}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Contact</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="Enter contact number"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  {/* Add other form fields in a similar manner */}
+                </CardContent>
+              </Card>
+              {alert && (
                 <Alert className="bg-green-200">
                   <AlertDescription>{alert}</AlertDescription>
                 </Alert>
-              </CardFooter>
-            )}
-          </Card>
+              )}
+            </div>
+            <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
+              <Card x-chunk="dashboard-07-chunk-1">
+                <CardHeader>
+                  <CardTitle>Employment information</CardTitle>
+                  <CardDescription>User employment information</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {/* Form Fields */}
+                  <FormField
+                    name="email"
+                    control={control}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Working email</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="email"
+                            {...field}
+                            placeholder="Enter email"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    name="employee_id"
+                    control={control}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Employee ID</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Enter employee" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    name="position"
+                    control={control}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Position</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    name="is_working"
+                    control={control}
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex items-center mt-2 mb-2">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              className="h-4 w-4"
+                            />
+                          </FormControl>
+                          <FormLabel className="ml-2">Is working?</FormLabel>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    name="department"
+                    control={control}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Department</FormLabel>
+                        <FormControl>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value ? field.value.toString() : ""}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a department" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                <SelectLabel>Department</SelectLabel>
+                                {departments.map((department) => (
+                                  <SelectItem
+                                    key={department.id}
+                                    value={department.id.toString()}
+                                  >
+                                    {department.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Add other form fields in a similar manner */}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      </form>
+    </FormProvider>
   );
 };
 

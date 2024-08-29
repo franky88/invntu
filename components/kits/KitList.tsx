@@ -8,16 +8,6 @@ import {
   TableBody,
   TableCell,
 } from "../ui/table";
-import Link from "next/link";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-  DropdownMenuCheckboxItem,
-} from "../ui/dropdown-menu";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -40,10 +30,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-import { Ellipsis, File, ListFilter, PlusCircle } from "lucide-react";
+import { PlusCircle, Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
 import api from "@/utils/api";
 
@@ -54,16 +43,6 @@ const KitList = () => {
   const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
   const [editingKit, setEditingKit] = useState<Kit | null>(null);
   const [kitIdToDelete, setKitIdToDelete] = useState<number | null>(null);
-
-  const fields = [
-    {
-      name: "name",
-      label: "Name",
-      type: "text",
-      placeholder: "Enter name",
-      value: "",
-    },
-  ];
 
   const getKits = async () => {
     try {
@@ -126,7 +105,7 @@ const KitList = () => {
     console.log(kitIdToDelete);
     if (kitIdToDelete !== null) {
       try {
-        await api.delete(`/kits/${kitIdToDelete}`);
+        const res = await api.delete(`/kits/${kitIdToDelete}`);
         await getKits();
         handleCloseAlertDialog();
       } catch (error) {
@@ -147,31 +126,7 @@ const KitList = () => {
           </TabsTrigger>
         </TabsList>
         <div className="ml-auto flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-7 gap-1">
-                <ListFilter className="h-3.5 w-3.5" />
-                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                  Filter
-                </span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuCheckboxItem checked>
-                Active
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem>Draft</DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem>Archived</DropdownMenuCheckboxItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button size="sm" variant="outline" className="h-7 gap-1">
-            <File className="h-3.5 w-3.5" />
-            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-              Export
-            </span>
-          </Button>
+          {/* Dialog for adding a kit */}
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="h-7 gap-1">
@@ -186,7 +141,15 @@ const KitList = () => {
                 <DialogTitle>Add kit</DialogTitle>
                 <DialogDescription>
                   <ReusableForm
-                    fields={fields}
+                    fields={[
+                      {
+                        name: "name",
+                        label: "Name",
+                        type: "text",
+                        placeholder: "Enter name",
+                        value: "",
+                      },
+                    ]}
                     onSubmit={handleSubmit}
                     buttonText="Add kit"
                   />
@@ -195,6 +158,7 @@ const KitList = () => {
             </DialogContent>
           </Dialog>
 
+          {/* Dialog for editing a kit */}
           <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
             <DialogTrigger asChild>
               <div></div>
@@ -222,6 +186,7 @@ const KitList = () => {
           </Dialog>
         </div>
       </div>
+
       <TabsContent value="all">
         <Card>
           <CardHeader>
@@ -242,69 +207,70 @@ const KitList = () => {
               <TableBody>
                 {kits.map((item) => (
                   <TableRow key={item.id}>
-                    <TableCell>{item.name}</TableCell>
-                    <TableCell>{item.kit_code}</TableCell>
-                    <TableCell>{item.is_available ? "Yes" : "No"}</TableCell>
                     <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger>
-                          <Ellipsis color="#222" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem>
-                            <Button
-                              variant="link"
-                              size="sm"
-                              onClick={() => {
-                                setEditingKit(item);
-                                setIsEditDialogOpen(true);
-                              }}
-                            >
-                              Edit
-                            </Button>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Button
-                              variant="link"
-                              size="sm"
-                              onClick={() => handleOpenAlertDialog(item.id)}
-                            >
-                              Delete
-                            </Button>
+                      <div className="flex align-middle">
+                        {item.name}
+                        <Button
+                          variant="link"
+                          size="sm"
+                          className="h-5"
+                          onClick={() => {
+                            setEditingKit(item);
+                            setIsEditDialogOpen(true);
+                          }}
+                        >
+                          <Pencil className="w-4 text-green-500" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                    <TableCell>{item.kit_code}</TableCell>
+                    <TableCell>{item.is_available ? "Yes" : "Not"}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 mr-3"
+                        onClick={() => {
+                          setEditingKit(item);
+                          setIsEditDialogOpen(true);
+                        }}
+                      >
+                        Details
+                      </Button>
+                      {item.is_available ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 mr-3 text-green-500"
+                          onClick={() => {
+                            setEditingKit(item);
+                            setIsEditDialogOpen(true);
+                          }}
+                        >
+                          Assign
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 mr-3 text-orange-500"
+                          onClick={() => {
+                            setEditingKit(item);
+                            setIsEditDialogOpen(true);
+                          }}
+                        >
+                          Return
+                        </Button>
+                      )}
 
-                            <AlertDialog
-                              open={isAlertDialogOpen}
-                              onOpenChange={setIsAlertDialogOpen}
-                            >
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>
-                                    Are you absolutely sure?
-                                  </AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    This action cannot be undone. This will
-                                    permanently delete this kit.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel
-                                    onClick={handleCloseAlertDialog}
-                                  >
-                                    Cancel
-                                  </AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={handleConfirmDelete}
-                                  >
-                                    Continue
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="h-7"
+                        onClick={() => handleOpenAlertDialog(item.id)}
+                      >
+                        Delete
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -313,6 +279,27 @@ const KitList = () => {
           </CardContent>
         </Card>
       </TabsContent>
+
+      {/* Alert Dialog for delete confirmation */}
+      <AlertDialog open={isAlertDialogOpen} onOpenChange={setIsAlertDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete this
+              kit.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCloseAlertDialog}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete}>
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Tabs>
   );
 };

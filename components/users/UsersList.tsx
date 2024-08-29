@@ -25,78 +25,72 @@ import {
 import { Badge } from "../ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { File, ListFilter, PlusCircle } from "lucide-react";
+import { File, ListFilter, PlusCircle, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "../ui/input";
 
 // Define User type if not already defined
 
 const UsersList = () => {
-  const [users, setUsers] = useState<User[] | null>(null);
-  const [working, setWorking] = useState<User[] | null>(null);
-  const [resigned, setResigned] = useState<User[] | null>(null);
-  const [archived, setArchived] = useState<User[] | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [working, setWorking] = useState<User[]>([]);
+  const [resigned, setResigned] = useState<User[]>([]);
+  const [archived, setArchived] = useState<User[]>([]);
+  const [searchUsers, setSearchUsers] = useState<User[]>([]);
+
+  const fetchData = async () => {
+    await Promise.all([
+      getUsers(),
+      getWorkingUsers(),
+      getResignedUsers(),
+      getArchivedUsers(),
+    ]);
+  };
 
   useEffect(() => {
-    const getUsers = async () => {
-      try {
-        const res = await api.get<{ results: User[] }>("/users/all");
-        setUsers(res.data.results);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      }
-    };
-
-    const getWorkingUsers = async () => {
-      try {
-        const res = await api.get<{ results: User[] }>("/users/working");
-        console.log(res.data.results);
-        setWorking(res.data.results);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    const getResignedUsers = async () => {
-      try {
-        const res = await api.get<{ results: User[] }>("/users/resigned");
-        console.log(res.data.results);
-        setResigned(res.data.results);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    const getArchivedUsers = async () => {
-      try {
-        const res = await api.get<{ results: User[] }>("/users/archived");
-        console.log(res.data.results);
-        setArchived(res.data.results);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    const fetchData = async () => {
-      await Promise.all([
-        getUsers(),
-        getWorkingUsers(),
-        getResignedUsers(),
-        getArchivedUsers(),
-      ]);
-    };
-
     fetchData();
   }, []);
 
+  const getUsers = async () => {
+    try {
+      const res = await api.get<{ results: User[] }>("/users/all");
+      setUsers(res.data.results);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
+
+  const getWorkingUsers = async () => {
+    try {
+      const res = await api.get<{ results: User[] }>("/users/working");
+      setWorking(res.data.results);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const getResignedUsers = async () => {
+    try {
+      const res = await api.get<{ results: User[] }>("/users/resigned");
+      setResigned(res.data.results);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const getArchivedUsers = async () => {
+    try {
+      const res = await api.get<{ results: User[] }>("/users/archived");
+      setArchived(res.data.results);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const archivedUser = async (user_id: number) => {
     try {
-      const res = await api.post(`/users/${user_id}/is_archived/`);
-      console.log("User archived:", res);
-      const refreshed = await api.get(`/users/${user_id}/`);
-      setUsers((prevUsers) =>
-        prevUsers.map((user) => (user.id === user_id ? refreshed.data : user))
-      );
-      console.log(refreshed);
+      await api.post(`/users/${user_id}/is_archived/`);
+      fetchData();
     } catch (error) {
       console.error(error);
     }
@@ -106,13 +100,24 @@ const UsersList = () => {
     archivedUser(user_id);
   };
 
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const query = event.target.value.toLowerCase();
+    const filteredUsers = users.filter(
+      (user) =>
+        user.full_name.toLowerCase().includes(query) ||
+        user.employee_id.toLowerCase().includes(query) ||
+        user.email.toLowerCase().includes(query)
+    );
+    setSearchUsers(filteredUsers);
+  };
+
   if (!users || users.length === 0) {
     return <p>No users found.</p>; // Handle the case where no users are found
   }
 
   return (
     <Tabs defaultValue="all">
-      <div className="flex items-center">
+      <div className="flex items-center gap-3">
         <TabsList>
           <TabsTrigger value="all">
             All
@@ -143,6 +148,20 @@ const UsersList = () => {
             </Badge>
           </TabsTrigger>
         </TabsList>
+        <div className="w-full flex-1">
+          <form>
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search..."
+                name="search"
+                className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
+                onChange={handleSearch}
+              />
+            </div>
+          </form>
+        </div>
         <div className="ml-auto flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -179,6 +198,7 @@ const UsersList = () => {
           </Link>
         </div>
       </div>
+
       <TabsContent value="all">
         <Card>
           <CardHeader>
@@ -201,7 +221,7 @@ const UsersList = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => (
+                {(searchUsers.length > 0 ? searchUsers : users).map((user) => (
                   <TableRow key={user.id}>
                     <TableCell className="hidden sm:table-cell">
                       {user.employee_id}
@@ -231,27 +251,11 @@ const UsersList = () => {
                       {user.is_staff ? "Yes" : "No"}
                     </TableCell>
                     <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger>
-                          <Button variant="outline" size="sm">
-                            <Ellipsis color="#222" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem>
-                            <Link href={`/users/${user.id}`} passHref>
-                              Edit
-                            </Link>
-                          </DropdownMenuItem>
-                          {/* <DropdownMenuItem>
-                            <a onClick={() => handleUserClick(user.id)}>
-                              Archived
-                            </a>
-                          </DropdownMenuItem> */}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <Link href={`/users/${user.id}`} passHref>
+                        <Button variant="outline" size="sm" className="h-7">
+                          Edit
+                        </Button>
+                      </Link>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -283,60 +287,46 @@ const UsersList = () => {
               </TableHeader>
               <TableBody>
                 {working ? (
-                  working.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell className="hidden sm:table-cell">
-                        {user.employee_id}
-                      </TableCell>
-                      <TableCell>
-                        <strong className="text-md">
-                          {user.full_name.toUpperCase()}
-                        </strong>{" "}
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell">
-                        <Link href={`mailto:${user.email}`}>
-                          <div className="flex gap-1 align-middle text-center">
-                            <Mail size={18} /> {user.email}
-                          </div>
-                        </Link>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {user.is_working ? (
-                            <div className="text-green-600">Working</div>
-                          ) : (
-                            <div className="text-red-600">Resigned</div>
-                          )}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell">
-                        {user.is_staff ? "Yes" : "No"}
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger>
-                            <Button variant="outline" size="sm">
-                              <Ellipsis color="#222" />
+                  (searchUsers.length > 0 ? searchUsers : working).map(
+                    (user) => (
+                      <TableRow key={user.id}>
+                        <TableCell className="hidden sm:table-cell">
+                          {user.employee_id}
+                        </TableCell>
+                        <TableCell>
+                          <strong className="text-md">
+                            {user.full_name.toUpperCase()}
+                          </strong>{" "}
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                          <Link href={`mailto:${user.email}`}>
+                            <div className="flex gap-1 align-middle text-center">
+                              <Mail size={18} /> {user.email}
+                            </div>
+                          </Link>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">
+                            {user.is_working ? (
+                              <div className="text-green-600">Working</div>
+                            ) : (
+                              <div className="text-red-600">Resigned</div>
+                            )}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                          {user.is_staff ? "Yes" : "No"}
+                        </TableCell>
+                        <TableCell>
+                          <Link href={`/users/${user.id}`} passHref>
+                            <Button variant="outline" size="sm" className="h-7">
+                              Edit
                             </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>
-                              <Link href={`/users/${user.id}`} passHref>
-                                Edit
-                              </Link>
-                            </DropdownMenuItem>
-                            {/* <DropdownMenuItem>
-                                <a onClick={() => handleUserClick(user.id)}>
-                                  Archived
-                                </a>
-                              </DropdownMenuItem> */}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  )
                 ) : (
                   <TableRow>
                     <TableCell>No data available!</TableCell>
@@ -402,7 +392,7 @@ const UsersList = () => {
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger>
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" className="h-7">
                               <Ellipsis color="#222" />
                             </Button>
                           </DropdownMenuTrigger>

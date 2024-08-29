@@ -6,12 +6,13 @@ interface Department {
 
 interface User {
     id: number;
-    birth_date: any;
-    contact: any;
+    birth_date: Date;
+    contact: number;
     department: any;
     username: string;
     email: string;
     full_name: string;
+    position: string;
     is_staff: boolean;
     is_active: boolean;
     first_name: string;
