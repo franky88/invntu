@@ -35,19 +35,35 @@ import {
 import { PlusCircle, Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
 import api from "@/utils/api";
+import Link from "next/link";
 
 const KitList = () => {
   const [kits, setKits] = useState<Kit[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
+  const [isAlertDialogOpenAssign, setIsAlertDialogOpenAssign] = useState(false);
+  const [isAlertDialogOpenDelete, setIsAlertDialogOpenDelete] = useState(false);
+  const [isAlertDialogOpenReturn, setIsAlertDialogOpenReturn] = useState(false);
   const [editingKit, setEditingKit] = useState<Kit | null>(null);
+  const [kitIdToAssign, setKitIdToAssign] = useState<number | null>(null);
   const [kitIdToDelete, setKitIdToDelete] = useState<number | null>(null);
+  const [kitIdToReturn, setKitIdToReturn] = useState<number | null>(null);
 
   const getKits = async () => {
     try {
       const res = await api.get("/kits");
       setKits(res.data.results);
+      console.log("kits", res.data.results);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const getUsers = async () => {
+    try {
+      const res = await api.get("users");
+      setUsers(res.data.results);
     } catch (error) {
       console.error(error);
     }
@@ -55,16 +71,14 @@ const KitList = () => {
 
   useEffect(() => {
     getKits();
+    getUsers();
   }, []);
 
   const handleSubmit = async (formData: { [key: string]: string }) => {
     try {
       await api.post("/kits/", { name: formData.name });
-
       const res = await api.get("/kits");
       setKits(res.data.results);
-
-      // Close the dialog after successful submission
       setIsDialogOpen(false);
     } catch (error) {
       console.error(error);
@@ -90,14 +104,39 @@ const KitList = () => {
     }
   };
 
-  const handleOpenAlertDialog = (kitId: number) => {
-    setKitIdToDelete(kitId);
-    setIsAlertDialogOpen(true);
+  const handleOpenAlertDialogAssign = (kitId: number) => {
+    setKitIdToAssign(kitId);
+    setIsAlertDialogOpenAssign(true);
     console.log(kitIdToDelete);
   };
 
-  const handleCloseAlertDialog = () => {
-    setIsAlertDialogOpen(false);
+  const handleCloseAlertDialogAssign = () => {
+    setIsAlertDialogOpenAssign(false);
+    setKitIdToDelete(null);
+  };
+
+  const handleConfirmAssign = async (formData: { [key: string]: string }) => {
+    try {
+      await api.post("/assignments/", {
+        unit_kit: kitIdToAssign,
+        assign_to: formData.assign_to,
+        date_assigned: formData.date_assigned,
+      });
+      await getKits();
+      handleCloseAlertDialogAssign();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleOpenAlertDialogDelete = (kitId: number) => {
+    setKitIdToDelete(kitId);
+    setIsAlertDialogOpenDelete(true);
+    console.log(kitIdToDelete);
+  };
+
+  const handleCloseAlertDialogDelete = () => {
+    setIsAlertDialogOpenDelete(false);
     setKitIdToDelete(null);
   };
 
@@ -107,7 +146,31 @@ const KitList = () => {
       try {
         const res = await api.delete(`/kits/${kitIdToDelete}`);
         await getKits();
-        handleCloseAlertDialog();
+        handleCloseAlertDialogDelete();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+
+  const handleOpenAlertDialogReturn = (kitId: number) => {
+    setKitIdToReturn(kitId);
+    setIsAlertDialogOpenReturn(true);
+    console.log(kitIdToDelete);
+  };
+
+  const handleCloseAlertDialogReturn = () => {
+    setIsAlertDialogOpenReturn(false);
+    setKitIdToReturn(null);
+  };
+
+  const handleConfirmReturn = async () => {
+    console.log(kitIdToReturn);
+    if (kitIdToReturn !== null) {
+      try {
+        const res = await api.post(`/assignments/${kitIdToReturn}/returned`);
+        await getKits();
+        handleCloseAlertDialogReturn();
       } catch (error) {
         console.error(error);
       }
@@ -226,26 +289,22 @@ const KitList = () => {
                     <TableCell>{item.kit_code}</TableCell>
                     <TableCell>{item.is_available ? "Yes" : "Not"}</TableCell>
                     <TableCell>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 mr-3"
-                        onClick={() => {
-                          setEditingKit(item);
-                          setIsEditDialogOpen(true);
-                        }}
-                      >
-                        Details
-                      </Button>
+                      <Link href={`/kits/${item.id}`}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 mr-3"
+                        >
+                          Details
+                        </Button>
+                      </Link>
+
                       {item.is_available ? (
                         <Button
                           variant="outline"
                           size="sm"
                           className="h-7 mr-3 text-green-500"
-                          onClick={() => {
-                            setEditingKit(item);
-                            setIsEditDialogOpen(true);
-                          }}
+                          onClick={() => handleOpenAlertDialogAssign(item.id)}
                         >
                           Assign
                         </Button>
@@ -254,10 +313,7 @@ const KitList = () => {
                           variant="outline"
                           size="sm"
                           className="h-7 mr-3 text-orange-500"
-                          onClick={() => {
-                            setEditingKit(item);
-                            setIsEditDialogOpen(true);
-                          }}
+                          onClick={() => handleOpenAlertDialogReturn(item.id)}
                         >
                           Return
                         </Button>
@@ -267,7 +323,7 @@ const KitList = () => {
                         variant="destructive"
                         size="sm"
                         className="h-7"
-                        onClick={() => handleOpenAlertDialog(item.id)}
+                        onClick={() => handleOpenAlertDialogDelete(item.id)}
                       >
                         Delete
                       </Button>
@@ -281,7 +337,10 @@ const KitList = () => {
       </TabsContent>
 
       {/* Alert Dialog for delete confirmation */}
-      <AlertDialog open={isAlertDialogOpen} onOpenChange={setIsAlertDialogOpen}>
+      <AlertDialog
+        open={isAlertDialogOpenDelete}
+        onOpenChange={setIsAlertDialogOpenDelete}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
@@ -291,13 +350,76 @@ const KitList = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleCloseAlertDialog}>
+            <AlertDialogCancel onClick={handleCloseAlertDialogDelete}>
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete}>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-500"
+              onClick={handleConfirmDelete}
+            >
               Continue
             </AlertDialogAction>
           </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Alert Dialog for returned confirmation */}
+      <AlertDialog
+        open={isAlertDialogOpenReturn}
+        onOpenChange={setIsAlertDialogOpenReturn}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Return the kit?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will return the kit.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCloseAlertDialogReturn}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmReturn}>
+              Return
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Alert Dialog for assign confirmation */}
+      <AlertDialog
+        open={isAlertDialogOpenAssign}
+        onOpenChange={setIsAlertDialogOpenAssign}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Assign kit</AlertDialogTitle>
+            <AlertDialogDescription>
+              <ReusableForm
+                fields={[
+                  {
+                    name: "assign_to",
+                    label: "Assign to",
+                    type: "select",
+                    placeholder: "Select a item status",
+                    options: users.map((user) => ({
+                      value: user.id.toString(),
+                      label: user.full_name,
+                    })),
+                    value: "",
+                  },
+                  {
+                    name: "date_assigned",
+                    label: "Date assigned",
+                    type: "date",
+                    value: "",
+                  },
+                ]}
+                onSubmit={handleConfirmAssign}
+                buttonText="Assign"
+              />
+            </AlertDialogDescription>
+          </AlertDialogHeader>
         </AlertDialogContent>
       </AlertDialog>
     </Tabs>
