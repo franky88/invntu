@@ -35,7 +35,9 @@ import {
 import { PlusCircle, Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
 import api from "@/utils/api";
+import { GetKits, GetAllUsers } from "@/utils/api";
 import Link from "next/link";
+import { on } from "events";
 
 const KitList = () => {
   const [kits, setKits] = useState<Kit[]>([]);
@@ -50,11 +52,10 @@ const KitList = () => {
   const [kitIdToDelete, setKitIdToDelete] = useState<number | null>(null);
   const [kitIdToReturn, setKitIdToReturn] = useState<number | null>(null);
 
-  const getKits = async () => {
+  const getAllKits = async () => {
     try {
-      const res = await api.get("/kits");
-      setKits(res.data.results);
-      console.log("kits", res.data.results);
+      const response = await GetKits();
+      setKits(response || []);
     } catch (error) {
       console.error(error);
     }
@@ -62,15 +63,15 @@ const KitList = () => {
 
   const getUsers = async () => {
     try {
-      const res = await api.get("users");
-      setUsers(res.data.results);
+      const response = await GetAllUsers();
+      setUsers(response || []);
     } catch (error) {
       console.error(error);
     }
   };
 
   useEffect(() => {
-    getKits();
+    getAllKits();
     getUsers();
   }, []);
 
@@ -117,12 +118,12 @@ const KitList = () => {
 
   const handleConfirmAssign = async (formData: { [key: string]: string }) => {
     try {
-      await api.post("/assignments/", {
+      await api.post("/assignments", {
         unit_kit: kitIdToAssign,
         assign_to: formData.assign_to,
         date_assigned: formData.date_assigned,
       });
-      await getKits();
+      await getAllKits();
       handleCloseAlertDialogAssign();
     } catch (error) {
       console.error(error);
@@ -145,7 +146,7 @@ const KitList = () => {
     if (kitIdToDelete !== null) {
       try {
         const res = await api.delete(`/kits/${kitIdToDelete}`);
-        await getKits();
+        await getAllKits();
         handleCloseAlertDialogDelete();
       } catch (error) {
         console.error(error);
@@ -169,7 +170,7 @@ const KitList = () => {
     if (kitIdToReturn !== null) {
       try {
         const res = await api.post(`/assignments/${kitIdToReturn}/returned`);
-        await getKits();
+        await getAllKits();
         handleCloseAlertDialogReturn();
       } catch (error) {
         console.error(error);
@@ -417,6 +418,7 @@ const KitList = () => {
                 ]}
                 onSubmit={handleConfirmAssign}
                 buttonText="Assign"
+                onCancel={handleCloseAlertDialogAssign}
               />
             </AlertDialogDescription>
           </AlertDialogHeader>

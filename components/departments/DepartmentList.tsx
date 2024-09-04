@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import api from "@/utils/api";
+import { GetDepartments } from "@/utils/api";
 import Link from "next/link";
 import { Ellipsis } from "lucide-react";
 import {
@@ -28,9 +28,8 @@ const DepartmentList = () => {
   useEffect(() => {
     const getDepartments = async () => {
       try {
-        const res = await api.get("/departments");
-        console.log("departments list", res.data.results);
-        setDepartments(res.data.results);
+        const response = await GetDepartments();
+        setDepartments(response || []);
       } catch (error) {
         console.error(error);
       }

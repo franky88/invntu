@@ -133,12 +133,12 @@ const CreateItem = () => {
   const handleSubmit = async (formData: { [key: string]: string }) => {
     try {
       const res = await api.post("/units/", {
-        barcode: formData.barcode,
-        name: formData.name,
-        model: formData.model,
-        date_purchased: formData.date_purchased,
-        cost: formData.cost,
-        serial: formData.serial,
+        ...formData,
+        category: formData.category ? parseInt(formData.category) : null,
+        unit_kit: formData.unit_kit ? parseInt(formData.unit_kit) : null,
+        item_status: formData.item_status
+          ? parseInt(formData.item_status)
+          : null,
       });
       console.log(res.data);
     } catch (error: any) {

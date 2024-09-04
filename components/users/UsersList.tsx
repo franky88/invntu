@@ -28,6 +28,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { File, ListFilter, PlusCircle, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "../ui/input";
+import { GetAllUsers } from "@/utils/api";
 
 // Define User type if not already defined
 
@@ -40,7 +41,7 @@ const UsersList = () => {
 
   const fetchData = async () => {
     await Promise.all([
-      getUsers(),
+      getAllUsers(),
       getWorkingUsers(),
       getResignedUsers(),
       getArchivedUsers(),
@@ -51,10 +52,11 @@ const UsersList = () => {
     fetchData();
   }, []);
 
-  const getUsers = async () => {
+  const getAllUsers = async () => {
     try {
-      const res = await api.get<{ results: User[] }>("/users/all");
-      setUsers(res.data.results);
+      // const res = await api.get<{ results: User[] }>("/users/all");
+      const users = await GetAllUsers();
+      setUsers(users || []);
     } catch (error) {
       console.error("Error fetching users:", error);
     }

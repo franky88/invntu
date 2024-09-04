@@ -2,12 +2,12 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import api from "@/utils/api";
+import api, { GetDepartments } from "@/utils/api";
+import { GetUser } from "@/utils/api";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -20,7 +20,6 @@ import { Checkbox } from "../ui/checkbox";
 import Link from "next/link";
 import {
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -39,9 +38,10 @@ import {
 
 const UserDetails = () => {
   const { userId } = useParams();
+  const id = Number(userId);
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [departments, setDepartments] = useState<any[]>([]);
+  const [user, setUser] = useState<User | undefined>(undefined);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [error, setError] = useState(null);
   const [alert, setAlert] = useState<string | null>(null);
 
@@ -49,33 +49,37 @@ const UserDetails = () => {
 
   const { control, handleSubmit, setValue } = methods;
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const userRes = await api.get(`/users/${userId}`);
-        const userData = userRes.data;
-        setUser(userData);
-        Object.keys(userData).forEach((key) =>
-          setValue(key as keyof User, userData[key])
+  const fetchUser = async () => {
+    try {
+      const userRes = await GetUser(id);
+      console.log(userRes);
+      if (userRes) {
+        setUser(userRes);
+        Object.keys(userRes).forEach((key) =>
+          setValue(key as keyof User, userRes[key as keyof User])
         );
-      } catch (err: any) {
-        setError(err);
+      } else {
+        console.error("User data is undefined.");
       }
-    };
+    } catch (err: any) {
+      setError(err);
+      console.error("Error fetching user data:", err);
+    }
+  };
 
-    const fetchDepartments = async () => {
-      try {
-        const res = await api.get("/departments");
-        setDepartments(res.data.results);
-        console.log(res.data.results);
-      } catch (err: any) {
-        setError(err);
-      }
-    };
+  const fetchDepartments = async () => {
+    try {
+      const response = await GetDepartments();
+      setDepartments(response || []);
+    } catch (err: any) {
+      setError(err);
+    }
+  };
 
+  useEffect(() => {
     fetchUser();
     fetchDepartments();
-  }, [userId, setValue]);
+  }, [id, setValue]);
 
   if (error) return <p>Error loading user data</p>;
   if (!user) return <p>Loading...</p>;
@@ -90,11 +94,9 @@ const UserDetails = () => {
       });
       setAlert("Updated successfully");
 
-      const res = await api.get(`/users/${userId}`);
-      setUser(res.data);
+      await fetchUser();
 
       setTimeout(() => setAlert(null), 3000);
-      router.refresh();
     } catch (error: any) {
       if (error.response) {
         console.error("Error status:", error.response.status);
@@ -112,7 +114,7 @@ const UserDetails = () => {
   return (
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="mx-auto grid max-w-[59rem] flex-1 auto-rows-max gap-4">
+        <div className="grid max-w-[59rem] flex-1 auto-rows-max gap-4">
           <div className="flex items-center gap-4">
             <Link href="/users">
               <Button variant="outline" size="icon" className="h-7 w-7">
@@ -179,7 +181,7 @@ const UserDetails = () => {
                     control={control}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Birt date</FormLabel>
+                        <FormLabel>Birth date</FormLabel>
                         <FormControl>
                           <Input
                             type="date"

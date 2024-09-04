@@ -39,10 +39,7 @@ const CreateUser = () => {
     console.log("Form submitted:", formData.email);
     try {
       const res = await api.post("/users/", {
-        first_name: formData.first_name,
-        last_name: formData.last_name,
-        email: formData.email,
-        employee_id: formData.employee_id,
+        ...formData,
       });
       console.log(res.data);
     } catch (error: any) {

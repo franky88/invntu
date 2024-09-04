@@ -31,15 +31,21 @@ interface ApiResponse<T> {
     // Add other properties as needed
 }
 
-interface Item {
-    category: any;
+interface Category {
     id: number;
     name: string;
-    date_purchased: string;
-    cost: number;
-    serial: string;
-    model: string;
-    barcode: string;
+}
+
+interface ItemStatus {
+    id: number;
+    name: string;
+}
+
+interface History {
+    change_reason: string;
+    change_by: string;
+    timestamp: Date;
+    snapshot: Object;
 }
 
 interface Kit {
@@ -47,4 +53,23 @@ interface Kit {
     name: string;
     kit_code: string;
     is_available: boolean;
+    history: History[]
+}
+
+interface Item {
+    category: Category;
+    id: number;
+    name: string;
+    date_purchased: string;
+    cost: number;
+    serial: string;
+    model: string;
+    barcode: string;
+    unit_kit: Kit;
+    item_status: ItemStatus;
+}
+
+interface UnitStatus {
+    id: number;
+    name: string;
 }

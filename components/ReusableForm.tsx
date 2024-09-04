@@ -28,13 +28,15 @@ interface FormField {
 interface ReusableFormProps {
   fields: FormField[];
   onSubmit: (formData: { [key: string]: string | boolean }) => void;
-  buttonText: string;
+  buttonText: string | null;
+  onCancel?: () => void; // Optional onCancel prop
 }
 
 const ReusableForm: React.FC<ReusableFormProps> = ({
   fields,
   onSubmit,
   buttonText,
+  onCancel, // Destructure onCancel
 }) => {
   // State to manage form data
   const [formData, setFormData] = useState<{ [key: string]: string | boolean }>(
@@ -62,7 +64,7 @@ const ReusableForm: React.FC<ReusableFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
       {fields.map((field) => (
         <div key={field.name} style={{ marginBottom: "1rem" }}>
           <Label htmlFor={field.name}>{field.label}</Label>
@@ -112,7 +114,21 @@ const ReusableForm: React.FC<ReusableFormProps> = ({
           )}
         </div>
       ))}
-      <Button type="submit">{buttonText}</Button>
+      <div className="flex space-x-2">
+        <Button type="submit" className="float-right">
+          {buttonText}
+        </Button>
+        {onCancel && (
+          <Button
+            className="float-right"
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+          >
+            Cancel
+          </Button>
+        )}
+      </div>
     </form>
   );
 };
