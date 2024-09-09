@@ -35,6 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 
 const UserDetails = () => {
   const { userId } = useParams();
@@ -44,6 +45,7 @@ const UserDetails = () => {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [error, setError] = useState(null);
   const [alert, setAlert] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const methods = useForm<User>({});
 
@@ -92,11 +94,14 @@ const UserDetails = () => {
           ? parseInt(formData.department.toString())
           : null,
       });
-      setAlert("Updated successfully");
+
+      let currentDate = new Date().toJSON().slice(0, 10);
+      toast({
+        title: `User ${formData.email} updated successfully!`,
+        description: `Updated ${currentDate}`,
+      });
 
       await fetchUser();
-
-      setTimeout(() => setAlert(null), 3000);
     } catch (error: any) {
       if (error.response) {
         console.error("Error status:", error.response.status);
@@ -187,6 +192,11 @@ const UserDetails = () => {
                             type="date"
                             {...field}
                             placeholder="Enter birth date"
+                            value={
+                              field.value
+                                ? (field.value as unknown as string)
+                                : ""
+                            }
                           />
                         </FormControl>
                         <FormMessage />

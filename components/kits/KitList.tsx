@@ -37,7 +37,7 @@ import { useEffect, useState } from "react";
 import api from "@/utils/api";
 import { GetKits, GetAllUsers } from "@/utils/api";
 import Link from "next/link";
-import { on } from "events";
+import { useToast } from "@/hooks/use-toast";
 
 const KitList = () => {
   const [kits, setKits] = useState<Kit[]>([]);
@@ -51,6 +51,7 @@ const KitList = () => {
   const [kitIdToAssign, setKitIdToAssign] = useState<number | null>(null);
   const [kitIdToDelete, setKitIdToDelete] = useState<number | null>(null);
   const [kitIdToReturn, setKitIdToReturn] = useState<number | null>(null);
+  const { toast } = useToast();
 
   const getAllKits = async () => {
     try {
@@ -75,28 +76,45 @@ const KitList = () => {
     getUsers();
   }, []);
 
-  const handleSubmit = async (formData: { [key: string]: string }) => {
+  const handleSubmit = async (formData: {
+    [key: string]: string | boolean;
+  }) => {
     try {
       await api.post("/kits/", { name: formData.name });
-      const res = await api.get("/kits");
-      setKits(res.data.results);
+
+      await getAllKits();
+
+      let currentDate = new Date().toJSON().slice(0, 10);
+
+      toast({
+        title: `Kits ${formData.name} created successfully!`,
+        description: `Created ${currentDate}`,
+      });
+
       setIsDialogOpen(false);
     } catch (error) {
       console.error(error);
     }
   };
 
-  const handleSubmitUpdate = async (formData: { [key: string]: string }) => {
+  const handleSubmitUpdate = async (formData: {
+    [key: string]: string | boolean;
+  }) => {
     if (editingKit) {
       try {
         await api.put(`/kits/${editingKit.id}/`, { name: formData.name });
 
-        const res = await api.get("/kits");
-        setKits(res.data.results);
+        await getAllKits();
 
-        // Close the dialog after successful submission
+        let currentDate = new Date().toJSON().slice(0, 10);
+
+        toast({
+          title: `Kits ${formData.name} updated successfully!`,
+          description: `Updated ${currentDate}`,
+        });
+
         setIsEditDialogOpen(false);
-        setEditingKit(null); // Clear the editing kit
+        setEditingKit(null);
       } catch (error) {
         console.error(error);
       } finally {
@@ -116,7 +134,9 @@ const KitList = () => {
     setKitIdToDelete(null);
   };
 
-  const handleConfirmAssign = async (formData: { [key: string]: string }) => {
+  const handleConfirmAssign = async (formData: {
+    [key: string]: string | boolean;
+  }) => {
     try {
       await api.post("/assignments", {
         unit_kit: kitIdToAssign,
@@ -145,8 +165,15 @@ const KitList = () => {
     console.log(kitIdToDelete);
     if (kitIdToDelete !== null) {
       try {
-        const res = await api.delete(`/kits/${kitIdToDelete}`);
+        await api.delete(`/kits/${kitIdToDelete}/`);
         await getAllKits();
+
+        let currentDate = new Date().toJSON().slice(0, 10);
+        toast({
+          title: `Kit ID ${kitIdToDelete} deleted successfully!`,
+          description: `Deleted ${currentDate}`,
+        });
+
         handleCloseAlertDialogDelete();
       } catch (error) {
         console.error(error);

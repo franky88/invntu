@@ -7,8 +7,6 @@ import ReusableForm from "../ReusableForm";
 import { useRouter } from "next/navigation";
 
 const LoginPage = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const { login } = useAuth();
   const router = useRouter();
 
@@ -18,20 +16,24 @@ const LoginPage = () => {
       label: "Email",
       type: "email",
       placeholder: "Email",
-      value: `${email}`,
+      value: "",
     },
     {
       name: "password",
       label: "Password",
       type: "password",
       placeholder: "Password",
-      value: `${password}`,
+      value: "",
     },
   ];
 
-  const handleSubmit = async (formData: { [key: string]: string }) => {
+  const handleSubmit = async (formData: {
+    [key: string]: string | boolean;
+  }) => {
     try {
-      await login(formData.email, formData.password);
+      const email = formData.email as string;
+      const password = formData.password as string;
+      await login(email, password);
       router.push("/");
     } catch (error) {
       console.error("Login failed", error);

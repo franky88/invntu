@@ -18,25 +18,24 @@ import { Checkbox } from "@/components/ui/checkbox";
 interface FormField {
   name: string;
   label: string;
-  type: string; // Can be "text", "email", "select", "checkbox", etc.
+  type: string;
   placeholder?: string;
-  value: string | boolean; // Value can now be string or boolean for checkbox
-  options?: { value: string; label: string }[]; // Options for select field
+  value: string | boolean;
+  options?: { value: string; label: string }[];
 }
 
-// Define the type for form props
 interface ReusableFormProps {
   fields: FormField[];
   onSubmit: (formData: { [key: string]: string | boolean }) => void;
   buttonText: string | null;
-  onCancel?: () => void; // Optional onCancel prop
+  onCancel?: () => void;
 }
 
 const ReusableForm: React.FC<ReusableFormProps> = ({
   fields,
   onSubmit,
   buttonText,
-  onCancel, // Destructure onCancel
+  onCancel,
 }) => {
   // State to manage form data
   const [formData, setFormData] = useState<{ [key: string]: string | boolean }>(
@@ -50,11 +49,19 @@ const ReusableForm: React.FC<ReusableFormProps> = ({
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
+    const { name, type, checked, value } = e.target as HTMLInputElement;
+
+    if (type === "checkbox") {
+      setFormData({
+        ...formData,
+        [name]: checked,
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    }
   };
 
   // Handle form submission

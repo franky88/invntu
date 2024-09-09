@@ -20,6 +20,7 @@ interface User {
     employee_id: string;
     is_archived: boolean;
     is_working: boolean;
+    is_superuser: boolean;
     // Add other properties as needed
 }
 
@@ -41,11 +42,17 @@ interface ItemStatus {
     name: string;
 }
 
+interface Snapshot {
+    name: string;
+    is_available: boolean;
+}
+
 interface History {
+    id: number;
     change_reason: string;
     change_by: string;
     timestamp: Date;
-    snapshot: Object;
+    snapshot: Snapshot;
 }
 
 interface Kit {
@@ -57,7 +64,7 @@ interface Kit {
 }
 
 interface Item {
-    category: Category;
+    category: number;
     id: number;
     name: string;
     date_purchased: string;
@@ -65,8 +72,9 @@ interface Item {
     serial: string;
     model: string;
     barcode: string;
-    unit_kit: Kit;
-    item_status: ItemStatus;
+    unit_kit: number;
+    item_status: number;
+    results: Array;
 }
 
 interface UnitStatus {

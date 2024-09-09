@@ -4,13 +4,13 @@ import api from "@/utils/api";
 import ReusableForm from "../ReusableForm";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 const CreateItem = () => {
   const [categories, setCategories] = useState<any[]>([]);
   const [unitKit, setUnitKit] = useState<any[]>([]);
   const [itemStatus, setItemStatus] = useState<any[]>([]);
-  const [error, setError] = useState(null);
-  const [alert, setAlert] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const { user } = useAuth();
 
@@ -19,11 +19,11 @@ const CreateItem = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await api.get("/categories");
+        const res = await api.get("/categories/");
         setCategories(res.data.results);
         console.log(res.data.results);
       } catch (err: any) {
-        setError(err);
+        console.error(err);
       }
     };
 
@@ -33,7 +33,7 @@ const CreateItem = () => {
         setUnitKit(res.data.results);
         console.log(res.data.results);
       } catch (err: any) {
-        setError(err);
+        console.error(err);
       }
     };
 
@@ -43,7 +43,7 @@ const CreateItem = () => {
         setItemStatus(res.data.results);
         console.log(res.data.results);
       } catch (err: any) {
-        setError(err);
+        console.error(err);
       }
     };
 
@@ -75,27 +75,6 @@ const CreateItem = () => {
       value: "",
     },
     {
-      name: "date_purchased",
-      label: "Date Purchased",
-      type: "date",
-      placeholder: "",
-      value: "",
-    },
-    {
-      name: "cost",
-      label: "Cost",
-      type: "number",
-      placeholder: "",
-      value: "",
-    },
-    {
-      name: "serial",
-      label: "Serial",
-      type: "text",
-      placeholder: "Enter serial number",
-      value: "",
-    },
-    {
       name: "category",
       label: "Category",
       type: "select",
@@ -106,41 +85,23 @@ const CreateItem = () => {
       })),
       value: "",
     },
-    {
-      name: "unit_kit",
-      label: "Unit kit",
-      type: "select",
-      placeholder: "Select a kit",
-      options: unitKit.map((uk: any) => ({
-        value: uk.id.toString(),
-        label: uk.name,
-      })),
-      value: "",
-    },
-    {
-      name: "item_status",
-      label: "Item Status",
-      type: "select",
-      placeholder: "Select a item status",
-      options: itemStatus.map((status: any) => ({
-        value: status.id.toString(),
-        label: status.name,
-      })),
-      value: "",
-    },
   ];
 
-  const handleSubmit = async (formData: { [key: string]: string }) => {
+  const handleSubmit = async (formData: {
+    [key: string]: string | boolean;
+  }) => {
     try {
-      const res = await api.post("/units/", {
+      await api.post("/items/", {
         ...formData,
-        category: formData.category ? parseInt(formData.category) : null,
-        unit_kit: formData.unit_kit ? parseInt(formData.unit_kit) : null,
-        item_status: formData.item_status
-          ? parseInt(formData.item_status)
+        category: formData.category
+          ? parseInt(formData.category as string)
           : null,
       });
-      console.log(res.data);
+      let currentDate = new Date().toJSON().slice(0, 10);
+      toast({
+        title: `Item ${formData.name} successfully created`,
+        description: `Created ${currentDate}`,
+      });
     } catch (error: any) {
       if (error.response) {
         console.error("Response data:", error.response.data);

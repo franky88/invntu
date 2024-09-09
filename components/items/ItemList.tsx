@@ -13,7 +13,6 @@ import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuLabel,
   DropdownMenuCheckboxItem,
@@ -21,8 +20,7 @@ import {
 
 import { Search } from "lucide-react";
 
-import api from "@/utils/api";
-import { GetItems } from "@/utils/api";
+import api, { GetAllItems } from "@/utils/api";
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { File, ListFilter, PlusCircle } from "lucide-react";
@@ -42,6 +40,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/context/AuthContext";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "../ui/pagination";
+import { useToast } from "@/hooks/use-toast";
 
 const ItemList = () => {
   const [items, setItems] = useState<Item[]>([]);
@@ -49,21 +55,32 @@ const ItemList = () => {
   const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
   const [itemIdToDelete, setItemIdToDelete] = useState<number | null>(null);
   const [isAdminUser, setIsAdminUser] = useState(false);
+  const [page, setPage] = useState(1);
   const { user } = useAuth();
+  const { toast } = useToast();
 
   const getAllItems = async () => {
     try {
-      const response = await GetItems();
+      const response = await GetAllItems(page);
       setItems(response || []);
+      console.log(response || []);
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  const handleAdminUser = () => {
+    if (user?.is_superuser) {
+      setIsAdminUser(true);
+    } else {
+      setIsAdminUser(false);
     }
   };
 
   useEffect(() => {
     getAllItems();
     handleAdminUser();
-  }, []);
+  }, [page]);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const query = event.target.value.toLowerCase();
@@ -91,8 +108,15 @@ const ItemList = () => {
     console.log(itemIdToDelete);
     if (itemIdToDelete !== null) {
       try {
-        await api.delete(`/units/${itemIdToDelete}`);
+        await api.delete(`/items/${itemIdToDelete}/`);
         await getAllItems();
+
+        let currentDate = new Date().toJSON().slice(0, 10);
+        toast({
+          title: `Item successfully deleted!`,
+          description: `Deleted ${currentDate}`,
+        });
+
         handleCloseAlertDialog();
       } catch (error) {
         console.error(error);
@@ -100,13 +124,8 @@ const ItemList = () => {
     }
   };
 
-  const handleAdminUser = () => {
-    if (user.is_superuser) {
-      setIsAdminUser(true);
-    } else {
-      setIsAdminUser(false);
-    }
-  };
+  const nextPage = () => setPage((prevPage) => prevPage + 1);
+  const prevPage = () => setPage((prevPage) => Math.max(prevPage - 1, 1));
 
   return (
     <Tabs defaultValue="all">
@@ -183,13 +202,6 @@ const ItemList = () => {
                   <TableHead>Barcode</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Model</TableHead>
-                  <TableHead className="hidden sm:table-cell">
-                    Serials
-                  </TableHead>
-                  <TableHead className="hidden sm:table-cell">Cost</TableHead>
-                  <TableHead className="hidden sm:table-cell">
-                    Date purchased
-                  </TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -199,22 +211,13 @@ const ItemList = () => {
                     <TableCell>{item.barcode}</TableCell>
                     <TableCell>{item.name}</TableCell>
                     <TableCell>{item.model}</TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      {item.serial}
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      PHP {item.cost + ".00"}
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      {item.date_purchased}
-                    </TableCell>
                     <TableCell className="flex gap-3">
                       <Link href={`/items/${item.id}`} legacyBehavior passHref>
                         <Button variant="outline" className="h-7" size="sm">
                           Edit
                         </Button>
                       </Link>
-                      {isAdminUser && item.unit_kit === null ? (
+                      {isAdminUser ? (
                         <Button
                           variant="destructive"
                           size="sm"
@@ -269,6 +272,23 @@ const ItemList = () => {
             </Table>
           </CardContent>
         </Card>
+        <Pagination className="mt-5 ml-auto">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={prevPage}
+                isActive={page === 1 ? false : true}
+              >
+                Previous
+              </PaginationPrevious>
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationNext onClick={nextPage} isActive={page ? true : false}>
+                Next
+              </PaginationNext>
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       </TabsContent>
       <AlertDialog open={isAlertDialogOpen} onOpenChange={setIsAlertDialogOpen}>
         <AlertDialogContent>

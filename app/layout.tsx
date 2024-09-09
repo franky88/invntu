@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import ClientWrapper from "@/components/ClientWrapper";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,6 +23,7 @@ export default function RootLayout({
         <AuthProvider>
           <ClientWrapper>{children}</ClientWrapper>
         </AuthProvider>
+        <Toaster />
       </body>
     </html>
   );

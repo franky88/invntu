@@ -21,6 +21,12 @@ import {
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipProvider,
+  TooltipTrigger,
+  TooltipContent,
+} from "../ui/tooltip";
 
 import { Badge } from "../ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -29,6 +35,7 @@ import { File, ListFilter, PlusCircle, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "../ui/input";
 import { GetAllUsers } from "@/utils/api";
+import { useAuth } from "@/context/AuthContext";
 
 // Define User type if not already defined
 
@@ -38,6 +45,8 @@ const UsersList = () => {
   const [resigned, setResigned] = useState<User[]>([]);
   const [archived, setArchived] = useState<User[]>([]);
   const [searchUsers, setSearchUsers] = useState<User[]>([]);
+  const [isAdminUser, setIsAdminUser] = useState(false);
+  const { user } = useAuth();
 
   const fetchData = async () => {
     await Promise.all([
@@ -48,13 +57,21 @@ const UsersList = () => {
     ]);
   };
 
+  const checkAdminUser = () => {
+    if (user?.is_superuser) {
+      setIsAdminUser(true);
+    } else {
+      setIsAdminUser(false);
+    }
+  };
+
   useEffect(() => {
     fetchData();
+    checkAdminUser();
   }, []);
 
   const getAllUsers = async () => {
     try {
-      // const res = await api.get<{ results: User[] }>("/users/all");
       const users = await GetAllUsers();
       setUsers(users || []);
     } catch (error) {
@@ -64,7 +81,7 @@ const UsersList = () => {
 
   const getWorkingUsers = async () => {
     try {
-      const res = await api.get<{ results: User[] }>("/users/working");
+      const res = await api.get<{ results: User[] }>("/users/working/");
       setWorking(res.data.results);
     } catch (error) {
       console.error(error);
@@ -73,7 +90,7 @@ const UsersList = () => {
 
   const getResignedUsers = async () => {
     try {
-      const res = await api.get<{ results: User[] }>("/users/resigned");
+      const res = await api.get<{ results: User[] }>("/users/resigned/");
       setResigned(res.data.results);
     } catch (error) {
       console.error(error);
@@ -82,7 +99,7 @@ const UsersList = () => {
 
   const getArchivedUsers = async () => {
     try {
-      const res = await api.get<{ results: User[] }>("/users/archived");
+      const res = await api.get<{ results: User[] }>("/users/archived/");
       setArchived(res.data.results);
     } catch (error) {
       console.error(error);
@@ -253,11 +270,26 @@ const UsersList = () => {
                       {user.is_staff ? "Yes" : "No"}
                     </TableCell>
                     <TableCell>
-                      <Link href={`/users/${user.id}`} passHref>
-                        <Button variant="outline" size="sm" className="h-7">
-                          Edit
-                        </Button>
-                      </Link>
+                      {isAdminUser ? (
+                        <Link href={`/users/${user.id}`} passHref>
+                          <Button variant="outline" size="sm" className="h-7">
+                            Edit
+                          </Button>
+                        </Link>
+                      ) : (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Button variant="ghost" size="sm" className="h-7">
+                                Edit
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              Ask admin for permisions
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -320,11 +352,34 @@ const UsersList = () => {
                           {user.is_staff ? "Yes" : "No"}
                         </TableCell>
                         <TableCell>
-                          <Link href={`/users/${user.id}`} passHref>
-                            <Button variant="outline" size="sm" className="h-7">
-                              Edit
-                            </Button>
-                          </Link>
+                          {isAdminUser ? (
+                            <Link href={`/users/${user.id}`} passHref>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7"
+                              >
+                                Edit
+                              </Button>
+                            </Link>
+                          ) : (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7"
+                                  >
+                                    Edit
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  Ask admin for permisions
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
                         </TableCell>
                       </TableRow>
                     )
@@ -392,27 +447,18 @@ const UsersList = () => {
                         {user.is_staff ? "Yes" : "No"}
                       </TableCell>
                       <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger>
-                            <Button variant="outline" size="sm" className="h-7">
-                              <Ellipsis color="#222" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>
-                              <Link href={`/users/${user.id}`} passHref>
-                                Edit
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <a onClick={() => handleUserClick(user.id)}>
-                                Archived
-                              </a>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <Link href={`/users/${user.id}`} passHref>
+                          <Button variant="outline" className="h-7 mr-3">
+                            Edit
+                          </Button>
+                        </Link>
+                        <Button
+                          variant="outline"
+                          onClick={() => handleUserClick(user.id)}
+                          className="h-7"
+                        >
+                          Archived
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))
@@ -479,13 +525,33 @@ const UsersList = () => {
                           {user.is_staff ? "Yes" : "No"}
                         </TableCell>
                         <TableCell>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleUserClick(user.id)}
-                          >
-                            Restore
-                          </Button>
+                          {isAdminUser ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7"
+                              onClick={() => handleUserClick(user.id)}
+                            >
+                              Restore
+                            </Button>
+                          ) : (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7"
+                                  >
+                                    Restore
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  Ask admin for permissions
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))

@@ -10,15 +10,6 @@ import React, {
 import api from "@/utils/api";
 import { useRouter } from "next/navigation";
 
-// Define the shape of the user data based on JWT payload
-interface User {
-  id: number;
-  username: string;
-  email: string;
-  // Add more fields based on your JWT token payload structure
-}
-
-// Define the shape of the context state
 interface AuthContextType {
   user: User | null;
   loading: boolean;
@@ -40,7 +31,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   useEffect(() => {
     const getUser = async () => {
       try {
-        const response = await api.get("/current-user", {
+        const response = await api.get("/current-user/", {
           withCredentials: true,
         });
         if (response.status === 200) {
@@ -69,7 +60,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
       if (response.status === 200) {
         try {
-          const userResponse = await api.get("/current-user", {
+          const userResponse = await api.get("/current-user/", {
             withCredentials: true,
           });
           console.log("User data after login:", userResponse.data);
@@ -86,7 +77,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   const logout = async () => {
     try {
-      await api.post("/auth/logout", {}, { withCredentials: true });
+      await api.post("/auth/logout/", {}, { withCredentials: true });
     } catch (error) {
       console.error("Logout failed:", error);
     } finally {

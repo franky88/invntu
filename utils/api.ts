@@ -10,7 +10,7 @@ const api: AxiosInstance = axios.create({
 
 export const GetAllUsers = async (): Promise<User[] | undefined> => {
     try {
-        const response = await api.get('/users/all');
+        const response = await api.get('/users/all/');
         return response.data.results;
     } catch (error) {
         console.error("Error fetching users:", error);
@@ -20,27 +20,53 @@ export const GetAllUsers = async (): Promise<User[] | undefined> => {
 
 export const GetUser = async (id: number): Promise<User | undefined> => {
     try {
-        const response = await api.get(`/users/${id}`);
+        const response = await api.get(`/users/${id}/`);
         return response.data;
     } catch (error) {
         console.error(`Error fetching user with ID ${id}:`, error);
-        throw error; // Optionally rethrow or handle differently
+        throw error;
     }
 }
 
 export const GetItems = async (): Promise<Item[] | undefined> => {
     try {
-        const response = await api.get('/units');
-        return response.data.results;
+        const response = await api.get('/items/');
+        const paginateData = response.data
+        const items = paginateData.results;
+        return items;
     } catch (error) {
         console.error("Error fetching items:", error);
-        throw error; // Optionally rethrow or handle differently
+        throw error;
+    }
+}
+
+export const GetAllItems = async (page: number): Promise<Item[] | undefined> => {
+    try {
+        const response = await api.get('/items/', {params: {page}});
+        const paginateData = response.data
+        const items = paginateData.results;
+        return items;
+    } catch (error) {
+        console.error("Error fetching items:", error);
+        throw error;
+    }
+}
+
+export const GetAllWorkingItems = async (page: number): Promise<Item[] | undefined> => {
+    try {
+        const response = await api.get('/items/working/', {params: {page}});
+        const paginateData = response.data
+        const items = paginateData.results;
+        return items;
+    } catch (error) {
+        console.error("Error fetching items:", error);
+        throw error;
     }
 }
 
 export const GetItem = async (id: number): Promise<Item | undefined> => {
     try {
-        const response = await api.get(`/units/${id}`);
+        const response = await api.get(`/items/${id}/`);
         return response.data;
     } catch (error) {
         console.error(`Error fetching item with ID ${id}:`, error);
@@ -50,7 +76,7 @@ export const GetItem = async (id: number): Promise<Item | undefined> => {
 
 export const GetKits = async (): Promise<Kit[] | undefined> => {
     try {
-        const response = await api.get('/kits');
+        const response = await api.get('/kits/');
         return response.data.results;
     } catch (error) {
         console.error("Error fetching kits:", error);
@@ -60,7 +86,7 @@ export const GetKits = async (): Promise<Kit[] | undefined> => {
 
 export const GetKit = async (id: number): Promise<Kit | undefined> => {
     try {
-        const response = await api.get(`/kits/${id}`);
+        const response = await api.get(`/kits/${id}/`);
         return response.data;
     } catch (error) {
         console.error(`Error fetching item with ID ${id}:`, error);
@@ -70,7 +96,7 @@ export const GetKit = async (id: number): Promise<Kit | undefined> => {
 
 export const GetDepartments = async (): Promise<Department[] | undefined> => {
     try {
-        const response = await api.get('/departments');
+        const response = await api.get('/departments/');
         return response.data.results;
     } catch (error) {
         console.error("Error fetching departments:", error);
@@ -80,7 +106,7 @@ export const GetDepartments = async (): Promise<Department[] | undefined> => {
 
 export const GetDepartment = async (id: number): Promise<Department | undefined> => {
     try {
-        const response = await api.get(`/departments/${id}`);
+        const response = await api.get(`/departments/${id}/`);
         return response.data;
     } catch (error) {
         console.error(`Error fetching department with ID ${id}:`, error);
@@ -90,7 +116,7 @@ export const GetDepartment = async (id: number): Promise<Department | undefined>
 
 export const GetUnitStatuses = async (): Promise<UnitStatus[] | undefined> => {
     try {
-        const response = await api.get('/unit-status');
+        const response = await api.get('/unit-status/');
         return response.data.results;
     } catch (error) {
         console.error("Error fetching unit status:", error);
@@ -100,7 +126,7 @@ export const GetUnitStatuses = async (): Promise<UnitStatus[] | undefined> => {
 
 export const GetUnitStatus = async (id: number): Promise<UnitStatus | undefined> => {
     try {
-        const response = await api.get(`/unit-status/${id}`);
+        const response = await api.get(`/unit-status/${id}/`);
         return response.data;
     } catch (error) {
         console.error(`Error fetching unit status with ID ${id}:`, error);
@@ -110,7 +136,7 @@ export const GetUnitStatus = async (id: number): Promise<UnitStatus | undefined>
 
 export const GetCategories = async (): Promise<Category[] | undefined> => {
     try {
-        const response = await api.get('/categories');
+        const response = await api.get('/categories/');
         return response.data.results;
     } catch (error) {
         console.error("Error fetching categories:", error);
@@ -120,7 +146,7 @@ export const GetCategories = async (): Promise<Category[] | undefined> => {
 
 export const GetCategory = async (id: number): Promise<Category | undefined> => {
     try {
-        const response = await api.get(`/categories/${id}`);
+        const response = await api.get(`/categories/${id}/`);
         return response.data;
     } catch (error) {
         console.error(`Error fetching category with ID ${id}:`, error);

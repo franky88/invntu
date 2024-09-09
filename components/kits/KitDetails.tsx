@@ -33,31 +33,19 @@ const KitDetails = () => {
   const fetchKit = async () => {
     try {
       const response = await GetKit(id);
-      console.log("Kit details", response?.history);
+      const transformedHistory =
+        response?.history.map((hist: any) => ({
+          ...hist,
+          timestamp: new Date(hist.timestamp),
+        })) || [];
 
-      // Convert `timestamp` strings to Date objects
-      const transformedHistory = response?.history.map((hist: any) => ({
-        ...hist,
-        timestamp: new Date(hist.timestamp),
-      }));
+      const items = await GetItems();
+      const unitKitItems =
+        items?.filter((item: Item) => item.unit_kit === id) || [];
 
       setKit(response || null);
-      setHistory(transformedHistory || []);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const fetchItems = async () => {
-    try {
-      const response = await GetItems();
-      if (response) {
-        // Filter items that belong to the unit kits
-        const unitKitItems = response.filter(
-          (item: Item) => item.unit_kit === id
-        );
-        setFilteredItems(unitKitItems);
-      }
+      setHistory(transformedHistory);
+      setFilteredItems(unitKitItems);
     } catch (error) {
       console.error(error);
     }
@@ -65,7 +53,6 @@ const KitDetails = () => {
 
   useEffect(() => {
     fetchKit();
-    fetchItems();
   }, [id]);
   return (
     <div className="grid max-w-[59rem] flex-1 auto-rows-max gap-4">
@@ -103,7 +90,7 @@ const KitDetails = () => {
                 </TableHeader>
                 <TableBody>
                   {filteredItems.map((item) => (
-                    <TableRow>
+                    <TableRow key={item.id}>
                       <TableCell>{item.name}</TableCell>
                       <TableCell>{item.category}</TableCell>
                       <TableCell>{item.serial}</TableCell>
@@ -123,8 +110,8 @@ const KitDetails = () => {
             <CardContent>
               <ScrollArea className="h-60">
                 {history.map((hist) => (
-                  <div>
-                    {hist.changed_by} <br />
+                  <div key={hist.id}>
+                    {hist.change_by} <br />
                     <small className="text-gray-400">
                       {hist.timestamp.toDateString()}
                     </small>

@@ -2,8 +2,10 @@
 
 import api from "@/utils/api";
 import ReusableForm from "../ReusableForm";
+import { useToast } from "@/hooks/use-toast";
 
 const CreateUser = () => {
+  const { toast } = useToast();
   const fields = [
     {
       name: "first_name",
@@ -35,13 +37,19 @@ const CreateUser = () => {
     },
   ];
 
-  const handleSubmit = async (formData: { [key: string]: string }) => {
+  const handleSubmit = async (formData: {
+    [key: string]: string | boolean;
+  }) => {
     console.log("Form submitted:", formData.email);
     try {
-      const res = await api.post("/users/", {
+      await api.post("/users/", {
         ...formData,
       });
-      console.log(res.data);
+      let currentDate = new Date().toJSON().slice(0, 10);
+      toast({
+        title: `User ${formData.email} successfully created!`,
+        description: `Created ${currentDate}`,
+      });
     } catch (error: any) {
       if (error.response) {
         console.error("Response data:", error.response.data);

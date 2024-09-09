@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/context/AuthContext";
 
-const page = () => {
+const Page = () => {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -23,4 +23,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;

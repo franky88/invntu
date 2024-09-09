@@ -12,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import ReusableForm from "../ReusableForm";
+import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
@@ -46,8 +46,9 @@ const ItemDetails = () => {
   const [itemStatus, setItemStatus] = useState<ItemStatus[]>([]);
   const [error, setError] = useState(null);
   const [alert, setAlert] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  const methods = useForm();
+  const methods = useForm<Item>();
 
   const { control, handleSubmit, setValue } = methods;
 
@@ -108,19 +109,21 @@ const ItemDetails = () => {
 
   const onSubmit = async (formData: Item) => {
     try {
-      await api.put(`/units/${id}/`, {
+      await api.put(`/items/${id}/`, {
         ...formData,
-        category: formData.category ? parseInt(formData.category) : null,
-        unit_kit: formData.unit_kit ? parseInt(formData.unit_kit) : null,
-        item_status: formData.item_status
-          ? parseInt(formData.item_status)
-          : null,
+        category: formData.category ? formData.category : null,
+        unit_kit: formData.unit_kit ? formData.unit_kit : null,
+        item_status: formData.item_status ? formData.item_status : null,
       });
-      setAlert("Updated successfully");
+
+      let currentDate = new Date().toJSON().slice(0, 10);
+      toast({
+        title: `Item ${formData.name} updated successfully`,
+        description: `Updated ${currentDate}`,
+      });
 
       await fetchItem();
 
-      setTimeout(() => setAlert(null), 3000);
       router.refresh();
     } catch (error: any) {
       if (error.response) {
@@ -219,7 +222,7 @@ const ItemDetails = () => {
                       </FormItem>
                     )}
                   />
-                  <FormField
+                  {/* <FormField
                     name="date_purchased"
                     control={control}
                     render={({ field }) => (
@@ -235,45 +238,8 @@ const ItemDetails = () => {
                         <FormMessage />
                       </FormItem>
                     )}
-                  />
-                  <FormField
-                    name="cost"
-                    control={control}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Cost</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="number"
-                            placeholder="Enter cost"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    name="serial"
-                    control={control}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Serial</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Enter serial" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  /> */}
                 </CardContent>
-                {alert && (
-                  <CardFooter>
-                    <Alert className="bg-green-200">
-                      <AlertDescription>{alert}</AlertDescription>
-                    </Alert>
-                  </CardFooter>
-                )}
               </Card>
             </div>
             <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
@@ -305,86 +271,6 @@ const ItemDetails = () => {
                                     value={cat.id.toString()}
                                   >
                                     {cat.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
-              <Card x-chunk="dashboard-07-chunk-0">
-                <CardHeader>
-                  <CardTitle>Item Status</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <FormField
-                    name="item_status"
-                    control={control}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Item status</FormLabel>
-                        <FormControl>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value ? field.value.toString() : ""}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectGroup>
-                                <SelectLabel>Item status</SelectLabel>
-                                {itemStatus.map((stat) => (
-                                  <SelectItem
-                                    key={stat.id}
-                                    value={stat.id.toString()}
-                                  >
-                                    {stat.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
-              <Card x-chunk="dashboard-07-chunk-0">
-                <CardHeader>
-                  <CardTitle>Unit kit</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <FormField
-                    name="unit_kit"
-                    control={control}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Unit kit</FormLabel>
-                        <FormControl>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value ? field.value.toString() : ""}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a unit kit" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectGroup>
-                                <SelectLabel>Unit kit</SelectLabel>
-                                {unitKits.map((kit) => (
-                                  <SelectItem
-                                    key={kit.id}
-                                    value={kit.id.toString()}
-                                  >
-                                    {kit.name}
                                   </SelectItem>
                                 ))}
                               </SelectGroup>
