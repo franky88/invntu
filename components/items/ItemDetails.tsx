@@ -42,10 +42,7 @@ const ItemDetails = () => {
   const router = useRouter();
   const [item, setItem] = useState<Item>();
   const [categories, setCategories] = useState<Category[]>([]);
-  const [unitKits, setUnitKits] = useState<Kit[]>([]);
-  const [itemStatus, setItemStatus] = useState<ItemStatus[]>([]);
   const [error, setError] = useState(null);
-  const [alert, setAlert] = useState<string | null>(null);
   const { toast } = useToast();
 
   const methods = useForm<Item>();
@@ -53,8 +50,6 @@ const ItemDetails = () => {
   const { control, handleSubmit, setValue } = methods;
 
   const fetchItem = async () => {
-    console.log("item ID: ", id);
-
     try {
       const response = await GetItem(id);
       if (response) {
@@ -79,29 +74,9 @@ const ItemDetails = () => {
     }
   };
 
-  const fetchUnitKits = async () => {
-    try {
-      const response = await GetKits();
-      setUnitKits(response || []);
-    } catch (err: any) {
-      setError(err);
-    }
-  };
-
-  const fetchItemStatus = async () => {
-    try {
-      const response = await GetUnitStatuses();
-      setItemStatus(response || []);
-    } catch (err: any) {
-      setError(err);
-    }
-  };
-
   useEffect(() => {
     fetchItem();
     fetchCategories();
-    fetchUnitKits();
-    fetchItemStatus();
   }, [id]);
 
   if (error) return <p>Error loading item data</p>;
@@ -135,10 +110,6 @@ const ItemDetails = () => {
     }
   };
 
-  const discardUpdate = () => {
-    router.push("/items");
-  };
-
   return (
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -154,9 +125,11 @@ const ItemDetails = () => {
               Update Item
             </h1>
             <div className="items-center gap-2 md:ml-auto md:flex">
-              <Button variant="outline" size="sm" onClick={discardUpdate}>
-                Discard
-              </Button>
+              <Link href="/items">
+                <Button variant="outline" size="sm">
+                  Discard
+                </Button>
+              </Link>
               <Button size="sm" type="submit">
                 Save
               </Button>
@@ -222,23 +195,6 @@ const ItemDetails = () => {
                       </FormItem>
                     )}
                   />
-                  {/* <FormField
-                    name="date_purchased"
-                    control={control}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Date Purchased</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="date"
-                            placeholder="Enter date purchased"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  /> */}
                 </CardContent>
               </Card>
             </div>

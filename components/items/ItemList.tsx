@@ -209,8 +209,8 @@ const ItemList = () => {
                 {(searchItems.length > 0 ? searchItems : items).map((item) => (
                   <TableRow key={item.id}>
                     <TableCell>{item.barcode}</TableCell>
-                    <TableCell>{item.name}</TableCell>
-                    <TableCell>{item.model}</TableCell>
+                    <TableCell>{item.name.toLocaleUpperCase()}</TableCell>
+                    <TableCell>{item.model.toLocaleUpperCase()}</TableCell>
                     <TableCell className="flex gap-3">
                       <Link href={`/items/${item.id}`} legacyBehavior passHref>
                         <Button variant="outline" className="h-7" size="sm">

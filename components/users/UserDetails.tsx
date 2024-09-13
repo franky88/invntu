@@ -44,7 +44,7 @@ const UserDetails = () => {
   const [user, setUser] = useState<User | undefined>(undefined);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [error, setError] = useState(null);
-  const [alert, setAlert] = useState<string | null>(null);
+  const [unitAssign, setUnitAssign] = useState<Item | null>(null);
   const { toast } = useToast();
 
   const methods = useForm<User>({});
@@ -54,7 +54,6 @@ const UserDetails = () => {
   const fetchUser = async () => {
     try {
       const userRes = await GetUser(id);
-      console.log(userRes);
       if (userRes) {
         setUser(userRes);
         Object.keys(userRes).forEach((key) =>
@@ -63,6 +62,11 @@ const UserDetails = () => {
       } else {
         console.error("User data is undefined.");
       }
+
+      const unit = await api.get(`/users/${id}/unit_assignment/`);
+      const unitData = unit.data[0];
+      setUnitAssign(unitData);
+      console.log("data", unitData);
     } catch (err: any) {
       setError(err);
       console.error("Error fetching user data:", err);
@@ -88,7 +92,7 @@ const UserDetails = () => {
 
   const onSubmit = async (formData: User) => {
     try {
-      await api.put(`/users/${userId}/`, {
+      await api.put(`/users/${id}/`, {
         ...formData,
         department: formData.department
           ? parseInt(formData.department.toString())
@@ -222,13 +226,6 @@ const UserDetails = () => {
                   {/* Add other form fields in a similar manner */}
                 </CardContent>
               </Card>
-              {alert && (
-                <Alert className="bg-green-200">
-                  <AlertDescription>{alert}</AlertDescription>
-                </Alert>
-              )}
-            </div>
-            <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
               <Card x-chunk="dashboard-07-chunk-1">
                 <CardHeader>
                   <CardTitle>Employment information</CardTitle>
@@ -333,6 +330,21 @@ const UserDetails = () => {
                   />
 
                   {/* Add other form fields in a similar manner */}
+                </CardContent>
+              </Card>
+            </div>
+            <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
+              <Card x-chunk="dashboard-07-chunk-1">
+                <CardHeader>
+                  <CardTitle>Kit Assignments</CardTitle>
+                  <CardDescription>
+                    Items assignment informations
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {/* {unitAssign.map((unit) => (
+                    <div>{unit.date_assigned}</div>
+                  ))} */}
                 </CardContent>
               </Card>
             </div>

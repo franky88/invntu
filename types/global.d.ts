@@ -65,8 +65,10 @@ interface Kit {
 
 interface Item {
     category: number;
+    item: number;
     id: number;
     name: string;
+    item_name: string;
     date_purchased: string;
     cost: number;
     serial: string;
@@ -75,6 +77,8 @@ interface Item {
     unit_kit: number;
     item_status: number;
     results: Array;
+    unit_status_name: string;
+    unit_kit_name: string;
 }
 
 interface UnitStatus {

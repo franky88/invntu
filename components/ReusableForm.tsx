@@ -38,7 +38,9 @@ const ReusableForm: React.FC<ReusableFormProps> = ({
   onCancel,
 }) => {
   // State to manage form data
-  const [formData, setFormData] = useState<{ [key: string]: string | boolean }>(
+  const [formData, setFormData] = useState<{
+    [key: string]: string | boolean;
+  }>(
     fields.reduce(
       (acc, field) => ({ ...acc, [field.name]: field.value || "" }),
       {}
@@ -73,7 +75,7 @@ const ReusableForm: React.FC<ReusableFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
       {fields.map((field) => (
-        <div key={field.name} style={{ marginBottom: "1rem" }}>
+        <div key={field.name} style={{ marginBottom: ".2rem" }}>
           <Label htmlFor={field.name}>{field.label}</Label>
           {field.type === "select" && field.options ? (
             <Select

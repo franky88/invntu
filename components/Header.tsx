@@ -107,7 +107,7 @@ const Header = () => {
             </div>
           </form>
         </div>
-        <div className="float-left">
+        <div className="ml-auto">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">

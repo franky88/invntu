@@ -52,9 +52,9 @@ export const GetAllItems = async (page: number): Promise<Item[] | undefined> => 
     }
 }
 
-export const GetAllWorkingItems = async (page: number): Promise<Item[] | undefined> => {
+export const GetAvailableItems = async (): Promise<Item[] | undefined> => {
     try {
-        const response = await api.get('/items/working/', {params: {page}});
+        const response = await api.get('/items/available/');
         const paginateData = response.data
         const items = paginateData.results;
         return items;
@@ -71,6 +71,18 @@ export const GetItem = async (id: number): Promise<Item | undefined> => {
     } catch (error) {
         console.error(`Error fetching item with ID ${id}:`, error);
         throw error; // Optionally rethrow or handle differently
+    }
+}
+
+export const GetAllUnits = async (): Promise<Item[] | undefined> => {
+    try {
+        const response = await api.get('/units/');
+        const paginateData = response.data
+        const items = paginateData.results;
+        return items;
+    } catch (error) {
+        console.error("Error fetching items:", error);
+        throw error;
     }
 }
 

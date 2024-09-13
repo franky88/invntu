@@ -34,8 +34,7 @@ import {
 
 import { PlusCircle, Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
-import api from "@/utils/api";
-import { GetKits, GetAllUsers } from "@/utils/api";
+import api, { GetKits, GetAllUsers, GetAllUnits } from "@/utils/api";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 
@@ -45,7 +44,6 @@ const KitList = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAlertDialogOpenAssign, setIsAlertDialogOpenAssign] = useState(false);
-  const [isAlertDialogOpenDelete, setIsAlertDialogOpenDelete] = useState(false);
   const [isAlertDialogOpenReturn, setIsAlertDialogOpenReturn] = useState(false);
   const [editingKit, setEditingKit] = useState<Kit | null>(null);
   const [kitIdToAssign, setKitIdToAssign] = useState<number | null>(null);
@@ -85,7 +83,6 @@ const KitList = () => {
       await getAllKits();
 
       let currentDate = new Date().toJSON().slice(0, 10);
-
       toast({
         title: `Kits ${formData.name} created successfully!`,
         description: `Created ${currentDate}`,
@@ -106,8 +103,7 @@ const KitList = () => {
 
         await getAllKits();
 
-        let currentDate = new Date().toJSON().slice(0, 10);
-
+        let currentDate = new Date().toLocaleDateString();
         toast({
           title: `Kits ${formData.name} updated successfully!`,
           description: `Updated ${currentDate}`,
@@ -137,12 +133,23 @@ const KitList = () => {
   const handleConfirmAssign = async (formData: {
     [key: string]: string | boolean;
   }) => {
+    const userAssign = Number(formData.assign_to);
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0"); // Months are zero-indexed
+    const day = String(now.getDate()).padStart(2, "0");
+
+    const formattedDate = `${year}-${month}-${day}`;
     try {
-      await api.post("/assignments", {
+      await api.post("/assignments/", {
+        ...formData,
         unit_kit: kitIdToAssign,
-        assign_to: formData.assign_to,
-        date_assigned: formData.date_assigned,
+        assign_to: userAssign,
+        date_assigned: formattedDate,
+        is_returned: false,
+        is_available: false,
       });
+      await api.post(`/kits/${kitIdToAssign}/assign_unit_kit/`);
       await getAllKits();
       handleCloseAlertDialogAssign();
     } catch (error) {
@@ -150,41 +157,9 @@ const KitList = () => {
     }
   };
 
-  const handleOpenAlertDialogDelete = (kitId: number) => {
-    setKitIdToDelete(kitId);
-    setIsAlertDialogOpenDelete(true);
-    console.log(kitIdToDelete);
-  };
-
-  const handleCloseAlertDialogDelete = () => {
-    setIsAlertDialogOpenDelete(false);
-    setKitIdToDelete(null);
-  };
-
-  const handleConfirmDelete = async () => {
-    console.log(kitIdToDelete);
-    if (kitIdToDelete !== null) {
-      try {
-        await api.delete(`/kits/${kitIdToDelete}/`);
-        await getAllKits();
-
-        let currentDate = new Date().toJSON().slice(0, 10);
-        toast({
-          title: `Kit ID ${kitIdToDelete} deleted successfully!`,
-          description: `Deleted ${currentDate}`,
-        });
-
-        handleCloseAlertDialogDelete();
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  };
-
   const handleOpenAlertDialogReturn = (kitId: number) => {
     setKitIdToReturn(kitId);
     setIsAlertDialogOpenReturn(true);
-    console.log(kitIdToDelete);
   };
 
   const handleCloseAlertDialogReturn = () => {
@@ -193,10 +168,9 @@ const KitList = () => {
   };
 
   const handleConfirmReturn = async () => {
-    console.log(kitIdToReturn);
     if (kitIdToReturn !== null) {
       try {
-        const res = await api.post(`/assignments/${kitIdToReturn}/returned`);
+        await api.put(`/kits/${kitIdToReturn}/return_assign_unit_kit/`);
         await getAllKits();
         handleCloseAlertDialogReturn();
       } catch (error) {
@@ -346,15 +320,6 @@ const KitList = () => {
                           Return
                         </Button>
                       )}
-
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        className="h-7"
-                        onClick={() => handleOpenAlertDialogDelete(item.id)}
-                      >
-                        Delete
-                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -363,33 +328,6 @@ const KitList = () => {
           </CardContent>
         </Card>
       </TabsContent>
-
-      {/* Alert Dialog for delete confirmation */}
-      <AlertDialog
-        open={isAlertDialogOpenDelete}
-        onOpenChange={setIsAlertDialogOpenDelete}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete this
-              kit.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleCloseAlertDialogDelete}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-red-600 hover:bg-red-500"
-              onClick={handleConfirmDelete}
-            >
-              Continue
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {/* Alert Dialog for returned confirmation */}
       <AlertDialog
@@ -429,17 +367,11 @@ const KitList = () => {
                     name: "assign_to",
                     label: "Assign to",
                     type: "select",
-                    placeholder: "Select a item status",
+                    placeholder: "Select assign to",
                     options: users.map((user) => ({
                       value: user.id.toString(),
                       label: user.full_name,
                     })),
-                    value: "",
-                  },
-                  {
-                    name: "date_assigned",
-                    label: "Date assigned",
-                    type: "date",
                     value: "",
                   },
                 ]}
