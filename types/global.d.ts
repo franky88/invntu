@@ -21,6 +21,7 @@ interface User {
     is_archived: boolean;
     is_working: boolean;
     is_superuser: boolean;
+    image: string;
     // Add other properties as needed
 }
 

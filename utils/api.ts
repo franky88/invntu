@@ -14,7 +14,7 @@ export const GetAllUsers = async (): Promise<User[] | undefined> => {
         return response.data.results;
     } catch (error) {
         console.error("Error fetching users:", error);
-        throw error; // Optionally rethrow or handle differently
+        throw error;
     }
 }
 
@@ -27,6 +27,20 @@ export const GetUser = async (id: number): Promise<User | undefined> => {
         throw error;
     }
 }
+
+export const PutUser = async (id: number, data: Object): Promise<User | undefined> => {
+    try {
+        const response = await api.put(`/users/${id}/`, data, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        })
+        return response.data;
+    } catch (error) {
+        console.error(`Error fetching user with ID ${id}:`, error);
+        throw error;
+    }
+};
 
 export const GetItems = async (): Promise<Item[] | undefined> => {
     try {

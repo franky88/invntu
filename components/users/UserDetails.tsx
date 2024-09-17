@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import api, { GetDepartments } from "@/utils/api";
+import api, { GetDepartments, PutUser } from "@/utils/api";
 import { GetUser } from "@/utils/api";
 import {
   Card,
@@ -36,6 +36,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import KitCard from "../kits/KitCard";
+import { Image } from "lucide-react";
 
 const UserDetails = () => {
   const { userId } = useParams();
@@ -66,6 +68,7 @@ const UserDetails = () => {
       const unit = await api.get(`/users/${id}/unit_assignment/`);
       const unitData = unit.data[0];
       setUnitAssign(unitData);
+
       console.log("data", unitData);
     } catch (err: any) {
       setError(err);
@@ -92,14 +95,22 @@ const UserDetails = () => {
 
   const onSubmit = async (formData: User) => {
     try {
-      await api.put(`/users/${id}/`, {
-        ...formData,
-        department: formData.department
-          ? parseInt(formData.department.toString())
-          : null,
+      const data = new FormData();
+
+      Object.keys(formData).forEach((key) => {
+        const value = formData[key as keyof User];
+        if (value !== undefined && value !== null) {
+          data.append(key, value.toString());
+        }
       });
 
-      let currentDate = new Date().toJSON().slice(0, 10);
+      if (user.image instanceof File) {
+        data.append("image", user.image);
+      }
+
+      await PutUser(id, data);
+
+      const currentDate = new Date().toJSON().slice(0, 10);
       toast({
         title: `User ${formData.email} updated successfully!`,
         description: `Updated ${currentDate}`,
@@ -120,9 +131,34 @@ const UserDetails = () => {
     router.push("/users");
   };
 
+  const handleImageChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (event.target.files && event.target.files[0]) {
+      const formData = new FormData();
+      formData.append("image", event.target.files[0]);
+      try {
+        await api.put(`/users/${id}/upload_edit_image/`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        await fetchUser();
+        console.log("Image uploaded successfully!");
+      } catch (error) {
+        console.error("Image upload failed:", error);
+      }
+    }
+  };
+
+  const triggerFileInput = () => {
+    const fileInput = document.getElementById("file-input");
+    if (fileInput) fileInput.click();
+  };
+
   return (
     <FormProvider {...methods}>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit)} encType="multipart/form-data">
         <div className="grid max-w-[59rem] flex-1 auto-rows-max gap-4">
           <div className="flex items-center gap-4">
             <Link href="/users">
@@ -158,72 +194,124 @@ const UserDetails = () => {
                   <CardDescription>User information</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {/* Form Fields */}
-                  <FormField
-                    name="first_name"
-                    control={control}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>First name</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Enter first name" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    name="last_name"
-                    control={control}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Last name</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Enter last name" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    name="birth_date"
-                    control={control}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Birth date</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="date"
-                            {...field}
-                            placeholder="Enter birth date"
-                            value={
-                              field.value
-                                ? (field.value as unknown as string)
-                                : ""
-                            }
+                  <div className="flex flex-row gap-3 items-center justify-center">
+                    <div className="w-1/2">
+                      {user.image ? (
+                        <div className="relative">
+                          <img
+                            src={user.image}
+                            alt="profile image"
+                            className="h-[273px] w-[273px] object-cover rounded-md"
                           />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    name="contact"
-                    control={control}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Contact</FormLabel>
-                        <FormControl>
                           <Input
-                            {...field}
-                            placeholder="Enter contact number"
+                            type="file"
+                            id="file-input"
+                            // name="image"
+                            onChange={handleImageChange}
+                            style={{ display: "none" }}
                           />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  {/* Add other form fields in a similar manner */}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            type="button"
+                            onClick={triggerFileInput}
+                            className="h-7 absolute inset-20 mx-auto my-40 flex items-center justify-center"
+                          >
+                            Change image
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="h-[273px] w-[273px] flex flex-col gap-3 items-center justify-center border-2 border-dotted rounded-md">
+                          <Image className="mx-auto" />
+                          <Input
+                            type="file"
+                            id="file-input"
+                            name="image"
+                            onChange={handleImageChange}
+                            style={{ display: "none" }}
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            type="button"
+                            onClick={triggerFileInput}
+                            className="h-7"
+                          >
+                            Upload image
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    <div className="w-1/2">
+                      <FormField
+                        name="first_name"
+                        control={control}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>First name</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                placeholder="Enter first name"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        name="last_name"
+                        control={control}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Last name</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Enter last name" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        name="birth_date"
+                        control={control}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Birth date</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="date"
+                                {...field}
+                                placeholder="Enter birth date"
+                                value={
+                                  field.value
+                                    ? (field.value as unknown as string)
+                                    : ""
+                                }
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        name="contact"
+                        control={control}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Contact</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                placeholder="Enter contact number"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
               <Card x-chunk="dashboard-07-chunk-1">
@@ -336,15 +424,13 @@ const UserDetails = () => {
             <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
               <Card x-chunk="dashboard-07-chunk-1">
                 <CardHeader>
-                  <CardTitle>Kit Assignments</CardTitle>
+                  <CardTitle>Unit Assignments</CardTitle>
                   <CardDescription>
                     Items assignment informations
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {/* {unitAssign.map((unit) => (
-                    <div>{unit.date_assigned}</div>
-                  ))} */}
+                  <KitCard kitID={unitAssign ? unitAssign.unit_kit : 0} />
                 </CardContent>
               </Card>
             </div>
