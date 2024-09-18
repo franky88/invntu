@@ -86,3 +86,24 @@ interface UnitStatus {
     id: number;
     name: string;
 }
+
+interface KitAssignment {
+    id: number;
+    unit_kit: number;
+    assign_to: number;
+    date_assigned: string;
+    date_returned: string;
+    is_returned: boolean;
+    remarks: string;
+    unit_kit_name: string;
+    history: History[] | null;
+}
+
+interface Unit {
+    id: number;
+    item: number;
+    item_name: string;
+    unit_kit: number;
+    serial: string;
+    item_category_name: string;
+}

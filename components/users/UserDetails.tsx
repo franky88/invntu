@@ -46,7 +46,6 @@ const UserDetails = () => {
   const [user, setUser] = useState<User | undefined>(undefined);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [error, setError] = useState(null);
-  const [unitAssign, setUnitAssign] = useState<Item | null>(null);
   const { toast } = useToast();
 
   const methods = useForm<User>({});
@@ -64,12 +63,6 @@ const UserDetails = () => {
       } else {
         console.error("User data is undefined.");
       }
-
-      const unit = await api.get(`/users/${id}/unit_assignment/`);
-      const unitData = unit.data[0];
-      setUnitAssign(unitData);
-
-      console.log("data", unitData);
     } catch (err: any) {
       setError(err);
       console.error("Error fetching user data:", err);
@@ -98,14 +91,19 @@ const UserDetails = () => {
       const data = new FormData();
 
       Object.keys(formData).forEach((key) => {
-        const value = formData[key as keyof User];
-        if (value !== undefined && value !== null) {
-          data.append(key, value.toString());
-        }
+        data.append(key, formData[key as keyof User]);
       });
 
-      if (user.image instanceof File) {
+      const fileInput = document.getElementById(
+        "file-input"
+      ) as HTMLInputElement;
+      if (user.image !== null) {
         data.append("image", user.image);
+      } else {
+        if (fileInput?.files?.[0]) {
+          console.log("image file", fileInput?.files?.[0]);
+          data.append("image", fileInput.files[0]);
+        }
       }
 
       await PutUser(id, data);
@@ -118,12 +116,12 @@ const UserDetails = () => {
 
       await fetchUser();
     } catch (error: any) {
-      if (error.response) {
-        console.error("Error status:", error.response.status);
-        console.error("Error data:", error.response.data);
-      } else {
-        console.error("Error message:", error.message);
-      }
+      console.error("Error updating user:", error);
+      toast({
+        title: "Error updating user",
+        description: error.message || "Something went wrong",
+        variant: "destructive",
+      });
     }
   };
 
@@ -145,8 +143,19 @@ const UserDetails = () => {
         });
         await fetchUser();
         console.log("Image uploaded successfully!");
-      } catch (error) {
+
+        const currentDate = new Date().toJSON().slice(0, 10);
+        toast({
+          title: `User image updated successfully!`,
+          description: `Updated ${currentDate}`,
+        });
+      } catch (error: any) {
         console.error("Image upload failed:", error);
+        toast({
+          title: "Error uploading image",
+          description: error.message || "Something went wrong",
+          variant: "destructive",
+        });
       }
     }
   };
@@ -178,7 +187,12 @@ const UserDetails = () => {
               )}
             </Badge>
             <div className="items-center gap-2 md:ml-auto md:flex">
-              <Button variant="outline" size="sm" onClick={discardUpdate}>
+              <Button
+                variant="outline"
+                size="sm"
+                type="button"
+                onClick={discardUpdate}
+              >
                 Discard
               </Button>
               <Button size="sm" type="submit">
@@ -206,7 +220,7 @@ const UserDetails = () => {
                           <Input
                             type="file"
                             id="file-input"
-                            // name="image"
+                            name="image"
                             onChange={handleImageChange}
                             style={{ display: "none" }}
                           />
@@ -430,7 +444,7 @@ const UserDetails = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <KitCard kitID={unitAssign ? unitAssign.unit_kit : 0} />
+                  <KitCard userID={id} />
                 </CardContent>
               </Card>
             </div>
