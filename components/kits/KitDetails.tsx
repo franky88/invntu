@@ -5,14 +5,7 @@ import { GetKit } from "@/utils/api";
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Separator } from "../ui/separator";
-import {
-  HoverCard,
-  HoverCardTrigger,
-  HoverCardContent,
-} from "@radix-ui/react-hover-card";
 import { Button } from "../ui/button";
-import { ScrollArea } from "../ui/scroll-area";
 import Link from "next/link";
 import { ChevronLeft, Pencil, PlusCircle } from "lucide-react";
 import {
@@ -50,6 +43,7 @@ import {
   TooltipTrigger,
 } from "../ui/tooltip";
 import { useAuth } from "@/context/AuthContext";
+import KitAssignTo from "./KitAssignTo";
 
 const KitDetails = () => {
   const { kitId } = useParams();
@@ -58,7 +52,7 @@ const KitDetails = () => {
   const [filteredItems, setFilteredItems] = useState<Item[]>([]);
   const [unitItemSet, setUnitItemSet] = useState<Item[]>([]);
   const [itemStatus, setItemStatus] = useState<UnitStatus[]>([]);
-  const [history, setHistory] = useState<History[]>([]);
+  const [userAssignId, setUserAssignId] = useState(0);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDialogOpenUpdate, setIsDialogOpenUpdate] = useState(false);
   const [isAlertDialogOpenDelete, setIsAlertDialogOpenDelete] = useState(false);
@@ -83,23 +77,17 @@ const KitDetails = () => {
       const units = await api.get(`/kits/${id}/get_all_units/`);
       const unitData = units.data;
 
-      console.log(unitData);
-
       try {
         const belong = await api.get(`/kits/${id}/kit_unit_belong_to/`);
         const belongData = belong.data;
 
-        console.log(belongData.assign_to);
-
-        const user = await api.get(`/users/${belongData.assign_to}/`);
-        console.log(user.data);
+        setUserAssignId(belongData.assign_to);
       } catch (error) {
         console.error(error);
       }
 
       setIsDelete(unitData.length === 0);
       setKit(response || null);
-      setHistory(transformedHistory);
       setFilteredItems(unitData || []);
     } catch (error) {
       console.error(error);
@@ -340,7 +328,7 @@ const KitDetails = () => {
                               placeholder: "Select a item",
                               options: unitItemSet.map((item: any) => ({
                                 value: item.id.toString(),
-                                label: item.name.toLocaleUpperCase(),
+                                label: item.item_name.toLocaleUpperCase(),
                               })),
                               value: "",
                             },
@@ -366,6 +354,7 @@ const KitDetails = () => {
                 <TableHeader>
                   <TableRow>
                     <TableCell>Name</TableCell>
+                    <TableCell>Category</TableCell>
                     <TableCell>Serial</TableCell>
                     <TableCell>Actions</TableCell>
                   </TableRow>
@@ -373,7 +362,10 @@ const KitDetails = () => {
                 <TableBody>
                   {filteredItems.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell>{item.item_name}</TableCell>
+                      <TableCell>{item.item_name.toUpperCase()}</TableCell>
+                      <TableCell>
+                        {item.item_category_name.toUpperCase()}
+                      </TableCell>
                       <TableCell>
                         <div className="flex align-middle">
                           {item.serial}
@@ -420,36 +412,15 @@ const KitDetails = () => {
         <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
           <Card>
             <CardHeader>
-              <CardTitle>Kit history</CardTitle>
+              <CardTitle>Kit Assign to</CardTitle>
             </CardHeader>
 
             <CardContent>
-              <ScrollArea className="h-60">
-                {history.map((hist) => (
-                  <div key={hist.id}>
-                    {hist.change_by} <br />
-                    <small className="text-gray-400">
-                      {hist.timestamp.toDateString()}
-                    </small>
-                    <br />
-                    <HoverCard>
-                      <HoverCardTrigger asChild>
-                        <Button variant="link" className="text-blue-500">
-                          Snapshot
-                        </Button>
-                      </HoverCardTrigger>
-                      <HoverCardContent>
-                        <div className="flex flex-col justify-between gap-3 space-x-4 bg-white p-5 rounded-md shadow-md">
-                          <strong>Snapshot</strong>
-                          {hist.snapshot.name}
-                          {hist.snapshot.is_available}
-                        </div>
-                      </HoverCardContent>
-                    </HoverCard>
-                  </div>
-                ))}
-              </ScrollArea>
-              <Separator orientation="horizontal" />
+              {userAssignId !== 0 ? (
+                <KitAssignTo userID={userAssignId} />
+              ) : (
+                <div>No user assign</div>
+              )}
             </CardContent>
           </Card>
         </div>

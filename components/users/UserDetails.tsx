@@ -11,7 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -26,25 +25,17 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useForm, FormProvider } from "react-hook-form";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import KitCard from "../kits/KitCard";
-import { Image } from "lucide-react";
+import { ImagePlus } from "lucide-react";
+import Image from "next/image";
+import FetchDepartment from "../departments/FetchDepartment";
 
 const UserDetails = () => {
   const { userId } = useParams();
   const id = Number(userId);
   const router = useRouter();
-  const [user, setUser] = useState<User | undefined>(undefined);
-  const [departments, setDepartments] = useState<Department[]>([]);
+  const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState(null);
   const { toast } = useToast();
 
@@ -69,18 +60,8 @@ const UserDetails = () => {
     }
   };
 
-  const fetchDepartments = async () => {
-    try {
-      const response = await GetDepartments();
-      setDepartments(response || []);
-    } catch (err: any) {
-      setError(err);
-    }
-  };
-
   useEffect(() => {
     fetchUser();
-    fetchDepartments();
   }, [id, setValue]);
 
   if (error) return <p>Error loading user data</p>;
@@ -212,10 +193,13 @@ const UserDetails = () => {
                     <div className="w-1/2">
                       {user.image ? (
                         <div className="relative">
-                          <img
+                          <Image
                             src={user.image}
                             alt="profile image"
                             className="h-[273px] w-[273px] object-cover rounded-md"
+                            width={273}
+                            height={273}
+                            priority={true}
                           />
                           <Input
                             type="file"
@@ -236,7 +220,7 @@ const UserDetails = () => {
                         </div>
                       ) : (
                         <div className="h-[273px] w-[273px] flex flex-col gap-3 items-center justify-center border-2 border-dotted rounded-md">
-                          <Image className="mx-auto" />
+                          <ImagePlus className="mx-auto" />
                           <Input
                             type="file"
                             id="file-input"
@@ -404,27 +388,12 @@ const UserDetails = () => {
                       <FormItem>
                         <FormLabel>Department</FormLabel>
                         <FormControl>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value ? field.value.toString() : ""}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a department" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectGroup>
-                                <SelectLabel>Department</SelectLabel>
-                                {departments.map((department) => (
-                                  <SelectItem
-                                    key={department.id}
-                                    value={department.id.toString()}
-                                  >
-                                    {department.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
+                          <FetchDepartment
+                            userValue={
+                              field.value ? field.value.toString() : ""
+                            }
+                            onChangeValue={field.onChange}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -438,10 +407,8 @@ const UserDetails = () => {
             <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
               <Card x-chunk="dashboard-07-chunk-1">
                 <CardHeader>
-                  <CardTitle>Unit Assignments</CardTitle>
-                  <CardDescription>
-                    Items assignment informations
-                  </CardDescription>
+                  <CardTitle>Kit Assignments</CardTitle>
+                  <CardDescription>Kit assignment informations</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <KitCard userID={id} />

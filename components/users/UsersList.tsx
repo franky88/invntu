@@ -108,7 +108,7 @@ const UsersList = () => {
 
   const archivedUser = async (user_id: number) => {
     try {
-      await api.post(`/users/${user_id}/is_archived/`);
+      await api.put(`/users/${user_id}/is_archived/`);
       fetchData();
     } catch (error) {
       console.error(error);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import api, { GetUser } from "@/utils/api";
 import { Monitor, PlusCircle } from "lucide-react";
 import { Separator } from "../ui/separator";
@@ -46,7 +46,7 @@ const KitCard = ({ userID }: KitProps) => {
   const [isAlertDialogOpenReturn, setIsAlertDialogOpenReturn] = useState(false);
   const { toast } = useToast();
 
-  const fetchAssignment = async () => {
+  const fetchAssignment = useCallback(async () => {
     try {
       const unit = await api.get(`/users/${userID}/unit_assignment/`);
       if (unit) {
@@ -79,11 +79,11 @@ const KitCard = ({ userID }: KitProps) => {
     } catch (error: any) {
       console.error(error);
     }
-  };
+  }, [userID]);
 
   useEffect(() => {
     fetchAssignment();
-  }, [userID]);
+  }, [fetchAssignment]);
 
   const handleOpenAlertDialogReturn = (kitId: number) => {
     setKitIdToReturn(kitId);
@@ -102,7 +102,8 @@ const KitCard = ({ userID }: KitProps) => {
 
         await fetchAssignment();
 
-        console.log(unitAssign);
+        console.log("unit assign: ---> ", unitAssign);
+        console.log("is unit assign: ---> ", (unitAssign.length = 0));
 
         if (unitAssign.length < 0) {
           setUnitAssign([]);
@@ -130,12 +131,14 @@ const KitCard = ({ userID }: KitProps) => {
           {unitAssign.map((unit) => (
             <div key={unit.id} className="flex flex-col gap-3">
               <div className="flex gap-3 items-center">
-                <div className="bg-slate-300 p-3 rounded-sm">
+                <div className="bg-slate-300 p-4 rounded-sm">
                   <Monitor />
                 </div>
                 <div>
                   <div className="flex items-center gap-3">
-                    <strong>{unit.unit_kit_name}</strong>
+                    <div className="flex flex-col">
+                      <strong>{unit.unit_kit_name}</strong>
+                    </div>
                     <Button
                       className="h-7 text-orange-400 ml-auto"
                       variant="link"
@@ -147,9 +150,14 @@ const KitCard = ({ userID }: KitProps) => {
                   </div>
 
                   <Separator />
-                  <small className="text-slate-500">
-                    Date assigned: {formatDate(unit.date_assigned)}
-                  </small>
+                  <div className="flex flex-col">
+                    <small className="">
+                      Code: <b>{unit.unit_kit_code}</b>
+                    </small>
+                    <small className="text-slate-500">
+                      Date assigned: {formatDate(unit.date_assigned)}
+                    </small>
+                  </div>
                 </div>
               </div>
               <div className="flex gap-2"></div>
